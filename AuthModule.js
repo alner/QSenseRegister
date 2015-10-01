@@ -39,6 +39,10 @@ app.use(session({
 }));
 
 app.get('/', function(req, res){
+  res.render('index');
+});
+
+app.get('/auth', function(req, res, next){
   req.session.targetId = req.query.targetId;
   req.session.resturi = req.query.proxyRestUri;
 
@@ -48,28 +52,33 @@ app.get('/', function(req, res){
   requestTicket(user_login, 'DEMOAPPS', req.session.resturi, req.session.targetId,
   https_options.pfx, https_options.passphrase)
   .then(function(response){
-    //var data = JSON.parse(data.data && data.data.toString());
-    //console.log(response.data.toString());
     if(response && response.data) {
+      //console.log(response.data.toString());
       var data = JSON.parse(response.data.toString());
-      if(data) {
-        if(data.Ticket)
-          console.log(data.Ticket);
+      if(data && data.Ticket) {
+          var redirectURI;
 
-        if(data.TargetUri)
-          console.log(data.TargetUri);
-      }
-    }
+          if (data.TargetUri && data.TargetUri.indexOf("?") > 0) {
+            redirectURI = data.TargetUri + '&qlikTicket=' + data.Ticket;
+          } else {
+            redirectURI = data.TargetUri + '?qlikTicket=' + data.Ticket;
+          }
+
+          res.redirect(redirectURI);
+          console.log("Login redirect:", redirectURI);
+      } else res.sendStatus(401); // authentication is possible but has failed
+    } else res.sendStatus(401);
   })
   .catch(function(err){
     console.error(err);
+    next(err);
   });
 
-  res.render('index', {
-    sessionID: req.sessionID,
-    targetId: req.session.targetId,
-    resturi: req.session.resturi
-  });
+  // res.render('index', {
+  //   sessionID: req.sessionID,
+  //   targetId: req.session.targetId,
+  //   resturi: req.session.resturi
+  // });
 
   req.session.destroy();
 });
