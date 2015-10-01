@@ -1,6 +1,7 @@
 var https = require('https'),
   Promise = require('promise'),
-  crypto = require('crypto');
+  crypto = require('crypto'),
+  uuid = require('node-uuid');
 
 function generateXrfkey(size, chars) {
   size = size || 16;
