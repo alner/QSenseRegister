@@ -5,6 +5,7 @@ var session = require('express-session');
 var exphbs  = require('express-handlebars');
 var bodyParser = require('body-parser');
 var cookieParser = require('cookie-parser');
+var recaptcha = require('express-recaptcha');
 var uuid = require('node-uuid');
 var https = require('https');
 var fs = require('fs');
@@ -15,6 +16,10 @@ var https_options = {
   pfx: fs.readFileSync(path.resolve('certificates','client.pfx')),
   passphrase: '1234567890'
 };
+
+var SITE_KEY = '6LesAA4TAAAAAD1rn9Jfy6ENT_1pa2IK6eWy_mVJ';
+var SECRET_KEY = '6LesAA4TAAAAAMPKGwWayCuStiJHtSh8m6uOPkDh';
+recaptcha.init(SITE_KEY, SECRET_KEY);
 
 var app = express();
 app.set('PORT', process.env.PORT || 8888);
@@ -38,8 +43,19 @@ app.use(session({
   }
 }));
 
-app.get('/', function(req, res){
-  res.render('index');
+app.get('/', recaptcha.middleware.render, function(req, res){
+  res.render('index',  { recaptcha:req.recaptcha,  SITE_KEY: SITE_KEY });
+});
+
+app.post('/', function(req, res){
+  recaptcha.verify(req, function(error) {
+      /*
+        if(!error)
+            ;//success code
+        else
+            ;//error code
+      */
+  });
 });
 
 app.get('/auth', function(req, res, next){

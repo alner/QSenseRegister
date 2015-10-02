@@ -31,46 +31,135 @@
   Код (защита от спама): Я не робот
 -->
 
+<div class="navbar navbar-default navbar-static-top topback">
+   <div class="container" >
+    <div class="row">
+      <div class="col-xs-12 col-sm-10 col-md-8 col-md-offset-2 col-sm-offset-1">
+        <div class="navbar-header hidden-xs">
+          <!--ul class="nav navbar-nav"-->
+          <a class="navbar-brand" href="http://www.rbcgrp.com">
+            <img src="logo.png" id="logo" alt="RBC GROUP Logo">
+          </a>
+            <p class="navbar-text"><big class="rbc visible-lg-block">Бизнес-аналитика для всех</big></p>
+        </div>
+        <div class="navbar-text visible-xs">
+          <span class="rbc"><big><strong>RBC GROUP</strong></big></span>
+        </div>
+        <div class="visible-lg-block visible-md-block visible-sm-block visible-xs-block">
+          <p class="navbar-text navbar-right">
+            <span class="glyphicon glyphicon-phone gc" aria-hidden="true"></span>
+            <span class="rbc"><big>+38 (044) 364 17 42</big></span>
+            <span class="glyphicon glyphicon-envelope gc" aria-hidden="true"></span>
+            <a class="rbc" href="mailto:marketing@rbcgrp.com"><span class="rbc"><big>marketing@rbcgrp.com</big></span></a>
+          </p>
+
+          <!-- Выберите и оцените возможности наших решений Qlik Sense -->
+          <!--a href="/" class="navbar-brand"> RBC GROUP</a-->
+        <!--/ul-->
+        </div>
+      </div>
+    </div>
+   </div>
+</div>
+
 <div class="container">
   <div class="row">
-    <div class="col-md-8 col-md-offset-2" role="main">
-        <div class="header clearfix">
-          <h3>Выберите и оцените возможности наших решений Qlik Sense</h3>
-        </div>
+    <div class="col-xs-12 col-sm-10 col-md-8 col-md-offset-2 col-sm-offset-1" role="main">
         <div class="panel panel-default">
-          <div class="panel-body">
-            <form>
+          <div id="form" class="panel-body">
+            <form class="form-horizontal">
               <div class="form-group">
-                <label for="name">Имя</label>
-                <input type="text" class="form-control" id="name" placeholder="Имя">
+                <div class="col-lg-3">
+                  <img id="img" src="bd_remixability.png" class="hidden-xs">
+                </div>
+                <div class="col-lg-9">
+                  <h5 class="gc">Выберите и оцените возможности наших решений Qlik&nbsp;Sense</h5>
+                </div>
               </div>
               <div class="form-group">
-                <label for="name">Фамилия</label>
-                <input type="text" class="form-control" id="surname" placeholder="Фамилия">
+                <label for="industry" class="col-lg-3 control-label">Область интереса</label>
+                <div class="col-lg-9">
+                  <select class="form-control" id="industry" name="industry">
+                    <option value>Выбрать...</option>
+                    <option>Анализ закупок</option>
+                    <option>Анализ запасов</option>
+                    <option>Анализ персонала</option>
+                    <option>Анализ продаж</option>
+                  </select>
+                </div>
               </div>
               <div class="form-group">
-                <label for="email">Email</label>
-                <input type="email" class="form-control" id="email" placeholder="Email">
+                <label for="application" class="col-md-3 control-label">Демо-приложение</label>
+                <div class="col-md-9">
+                  <select class="form-control" id="application" name="application">
+                    <option value>Выбрать...</option>
+                    <option>Анализ закупок</option>
+                    <option>Анализ запасов</option>
+                    <option>Анализ персонала</option>
+                    <option>Анализ продаж</option>
+                    <option>Анализ продаж (русская версия)</option>
+                    <option>Анализ производства</option>
+                    <option>Анализ финансов</option>
+                    <option>Аналитика для SAP ERP</option>
+                    <option>Аналитика для банков</option>
+                    <option>Аналитика для розничной торговли</option>
+                    <option>Аналитика для страхования</option>
+                    <option>Аналитика для энергетики</option>
+                    <option>Другое</option>
+                  </select>
+                </div>
               </div>
               <div class="form-group">
-                <label for="phone">Телефон</label>
-                <input type="tel" class="form-control" id="phone" placeholder="Телефон">
+                <label for="name" class="col-md-3 control-label">Имя</label>
+                <div class="col-md-9">
+                  <input type="text" class="form-control" id="name" placeholder="Имя">
+                </div>
               </div>
               <div class="form-group">
-                <label for="company">Компания</label>
-                <input type="text" class="form-control" id="company" placeholder="Компания">
+                <label for="name" class="col-md-3 control-label">Фамилия</label>
+                <div class="col-md-9">
+                  <input type="text" class="form-control" id="surname" placeholder="Фамилия">
+                </div>
               </div>
               <div class="form-group">
-                <label for="position">Должность</label>
-                <input type="text" class="form-control" id="position" placeholder="Должность">
+                <label for="email" class="col-md-3 control-label">Email</label>
+                <div class="col-md-9">
+                  <input type="email" class="form-control" id="email" placeholder="Email">
+                </div>
               </div>
-              <button type="submit" class="btn btn-success">Получить доступ</button>
+              <div class="form-group">
+                <label for="phone" class="col-md-3 control-label">Телефон</label>
+                <div class="col-md-9">
+                  <input type="tel" class="form-control" id="phone" placeholder="Телефон">
+                </div>
+              </div>
+              <div class="form-group">
+                <label for="company" class="col-md-3 control-label">Компания</label>
+                <div class="col-md-9">
+                  <input type="text" class="form-control" id="company" placeholder="Компания">
+                </div>
+              </div>
+              <div class="form-group">
+                <label for="position" class="col-md-3 control-label">Должность</label>
+                <div class="col-md-9">
+                  <input type="text" class="form-control" id="position" placeholder="Должность">
+                </div>
+              </div>
+              <div class="form-group">
+                <div class="g-recaptcha col-md-offset-3" data-sitekey="{{SITE_KEY}}">
+                </div>
+              </div>
+              <div class="form-group">
+                <div class="col-md-3">
+                  <button type="submit" class="btn btn-success">Получить доступ</button>
+                </div>
+              </div>
             </form>
           </div>
         </div>
-        <footer class="footer">
-          <p>&copy; RBC GROUP 2015</p>
-        </footer>
+        <!--footer class="footer">
+          <p>&copy; RBC GROUP</p>
+        </footer-->
     </div>
   </div>
 </div>
