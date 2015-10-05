@@ -1,0 +1,25 @@
+{
+  "authmodule": {
+    "port": 8888
+  },
+  "recaptcha": {
+    "SITE_KEY": "6LesAA4TAAAAAD1rn9Jfy6ENT_1pa2IK6eWy_mVJ",
+    "SECRET_KEY": "6LesAA4TAAAAAMPKGwWayCuStiJHtSh8m6uOPkDh"
+  },
+  "repository": {
+    "host": "qsdemo.rbcgrp.com",
+    "port": 4242,
+    "X-Qlik-User": "UserDirectory=QSDEMO; UserId=qsdemoapps"
+  },
+  "certificates": {
+    "passphrase": "1234567890",
+    "pfx": {
+      "client": "client.pfx"
+    },
+    "pem": {
+      "key": "client_key.pem",
+      "cert": "client.pem",
+      "ca": "root.pem"
+    }
+  }
+}

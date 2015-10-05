@@ -1,127 +1,120 @@
-<div class="navbar navbar-default navbar-static-top topback">
-   <div class="container" >
-    <div class="row">
-      <div class="col-xs-12 col-sm-10 col-md-8 col-md-offset-2 col-sm-offset-1">
-        <div class="navbar-header hidden-xs">
-          <a class="navbar-brand" href="http://www.rbcgrp.com">
-            <img src="logo.png" id="logo" alt="RBC GROUP Logo">
-          </a>
-            <p class="navbar-text"><big class="rbc visible-lg-block">Бизнес-аналитика для всех</big></p>
-        </div>
-        <div class="navbar-text visible-xs">
-          <span class="rbc"><big><strong>RBC GROUP</strong></big></span>
-        </div>
-        <div class="visible-lg-block visible-md-block visible-sm-block visible-xs-block">
-          <p class="navbar-text navbar-right">
-            <span class="glyphicon glyphicon-phone gc" aria-hidden="true"></span>
-            <span class="rbc"><big>+38 (044) 364 17 42</big></span>
-            <span class="glyphicon glyphicon-envelope gc" aria-hidden="true"></span>
-            <a class="rbc" href="mailto:marketing@rbcgrp.com"><span class="rbc"><big>marketing@rbcgrp.com</big></span></a>
-          </p>
-        </div>
-      </div>
-    </div>
-   </div>
-</div>
-
 <div class="container">
   <div class="row">
     <div class="col-xs-12 col-sm-10 col-md-8 col-md-offset-2 col-sm-offset-1" role="main">
         <div class="panel panel-default">
           <div id="form" class="panel-body">
-            <form class="form-horizontal">
+            <form class="form-horizontal" method="post" action="/">
               <div class="form-group">
-                <div class="col-lg-3">
+                <div class="col-md-3 col-sm-3">
                   <img id="img" src="bd_remixability.png" class="hidden-xs">
                 </div>
-                <div class="col-lg-9">
+                <div class="col-md-9 col-sm-9">
                   <h5 class="gc">Выберите и оцените возможности наших решений Qlik&nbsp;Sense</h5>
                 </div>
               </div>
               <div class="form-group">
-                <label for="industry" class="col-lg-3 control-label">Область интереса</label>
-                <div class="col-lg-9">
-                  <select class="form-control" id="industry" name="industry">
+                <label for="industry" class="col-md-3 col-sm-3 col-xs-3 control-label">Область интереса</label>
+                <div class="col-md-9 col-sm-9 col-xs-9">
+                  <select class="form-control" id="industry" name="industry" required>
                     <option value>Выбрать...</option>
-                    <option>Анализ закупок</option>
-                    <option>Анализ запасов</option>
-                    <option>Анализ персонала</option>
-                    <option>Анализ продаж</option>
+                    {{#each streams}}
+                    <option {{#if (../values) && this == (../values).industry }} selected="selected" {{/if}}>{{this}}</option>
+                    {{/each}}
                   </select>
                 </div>
               </div>
               <div class="form-group">
-                <label for="application" class="col-md-3 control-label">Демо-приложение</label>
-                <div class="col-md-9">
-                  <select class="form-control" id="application" name="application">
+                <label for="application" class="col-md-3 col-sm-3 col-xs-3 control-label">Демо-приложение</label>
+                <div class="col-md-9 col-sm-9 col-xs-9">
+                  <select class="form-control" id="application" name="application" required>
                     <option value>Выбрать...</option>
-                    <option>Анализ закупок</option>
-                    <option>Анализ запасов</option>
-                    <option>Анализ персонала</option>
-                    <option>Анализ продаж</option>
-                    <option>Анализ продаж (русская версия)</option>
-                    <option>Анализ производства</option>
-                    <option>Анализ финансов</option>
-                    <option>Аналитика для SAP ERP</option>
-                    <option>Аналитика для банков</option>
-                    <option>Аналитика для розничной торговли</option>
-                    <option>Аналитика для страхования</option>
-                    <option>Аналитика для энергетики</option>
-                    <option>Другое</option>
+                    {{#each apps}}
+                    <option>{{this.name}}</option>
+                    {{/each}}
                   </select>
                 </div>
               </div>
               <div class="form-group">
-                <label for="name" class="col-md-3 control-label">Имя</label>
-                <div class="col-md-9">
-                  <input type="text" class="form-control" id="name" placeholder="Имя">
+                <label for="name" class="col-md-3 col-sm-3 col-xs-3 control-label">Имя</label>
+                <div class="col-md-9 col-sm-9 col-xs-9">
+                  <input type="text" required class="form-control" id="name" name="name" value="{{values.name}}" placeholder="Имя">
                 </div>
               </div>
               <div class="form-group">
-                <label for="name" class="col-md-3 control-label">Фамилия</label>
-                <div class="col-md-9">
-                  <input type="text" class="form-control" id="surname" placeholder="Фамилия">
+                <label for="name" class="col-md-3 col-sm-3 col-xs-3 control-label">Фамилия</label>
+                <div class="col-md-9 col-sm-9 col-xs-9">
+                  <input type="text" required class="form-control" id="surname" name="surname" value="{{values.surname}}" placeholder="Фамилия">
                 </div>
               </div>
               <div class="form-group">
-                <label for="email" class="col-md-3 control-label">Email</label>
-                <div class="col-md-9">
-                  <input type="email" class="form-control" id="email" placeholder="Email">
+                <label for="email" class="col-md-3 col-sm-3 col-xs-3 control-label">Email</label>
+                <div class="col-md-9 col-sm-9 col-xs-9">
+                  <input type="email" required class="form-control" id="email" name="email" value="{{values.email}}" placeholder="Email">
                 </div>
               </div>
               <div class="form-group">
-                <label for="phone" class="col-md-3 control-label">Телефон</label>
-                <div class="col-md-9">
-                  <input type="tel" class="form-control" id="phone" placeholder="Телефон">
+                <label for="phone" class="col-md-3 col-sm-3 col-xs-3 control-label">Телефон</label>
+                <div class="col-md-9 col-sm-9 col-xs-9">
+                  <input type="tel" required class="form-control" id="phone" name="phone" value="{{values.phone}}" placeholder="Телефон">
                 </div>
               </div>
               <div class="form-group">
-                <label for="company" class="col-md-3 control-label">Компания</label>
-                <div class="col-md-9">
-                  <input type="text" class="form-control" id="company" placeholder="Компания">
+                <label for="company" class="col-md-3 col-sm-3 col-xs-3 control-label">Компания</label>
+                <div class="col-md-9 col-sm-9 col-xs-9">
+                  <input type="text" required class="form-control" id="company" name="company" value="{{values.company}}" placeholder="Компания">
                 </div>
               </div>
               <div class="form-group">
-                <label for="position" class="col-md-3 control-label">Должность</label>
-                <div class="col-md-9">
-                  <input type="text" class="form-control" id="position" placeholder="Должность">
+                <label for="position" class="col-md-3 col-sm-3 col-xs-3 control-label">Должность</label>
+                <div class="col-md-9 col-sm-9 col-xs-9">
+                  <input type="text" required class="form-control" id="position" name="position" value="{{values.position}}" placeholder="Должность">
                 </div>
               </div>
               <div class="form-group">
-                <div class="g-recaptcha col-md-offset-3" data-sitekey="{{SITE_KEY}}">
+                <div class="g-recaptcha col-md-9 col-sm-9 col-xs-9 col-md-offset-3 col-sd-offset-3" data-sitekey="{{SITE_KEY}}">
                 </div>
               </div>
+
+              {{#if errors}}
+              <div class="alert alert-danger" role="alert">
+                <ul>
+                  {{#each errors }}
+                    <li>{{ this.msg }}</li>
+                  {{/each}}
+                </ul>
+              </div>
+              {{/if}}
+
               <div class="form-group">
-                <div class="col-md-3">
+                <div class="col-md-3 col-sm-3 col-xs-3">
                   <button type="submit" class="btn btn-success">Получить доступ</button>
                 </div>
               </div>
             </form>
           </div>
+          <div id="pf" class="panel-footer visible-lg visible-md visible-sm"></div>
         </div>
-        <!--footer class="footer">
-          <p>&copy; RBC GROUP</p>
-        </footer-->
     </div>
   </div>
 </div>
+
+<script>
+$(document).ready(function(){
+  $('#industry').on('change', function(){
+    var industry = $('#industry').val();
+    if(industry) {
+      $.get('/api/' + industry + '/apps', function(data) {
+        var apps$ = $('#application');
+        apps$.empty();
+        var apps = [];
+        $.each(data, function (key, val) {
+          apps.push($('<option>' + val.name + '</option>'));
+        });
+        apps$.append(apps);
+      });
+    } else {
+      $('#application').empty();
+    }
+  });
+});
+</script>

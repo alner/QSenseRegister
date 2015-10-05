@@ -1,0 +1,23 @@
+System Rule for user
+
+CREATE RULE
+
+POST to https://qsdemo/qrs/SystemRule?privileges=true&xrfkey=...
+
+BODY:
+
+{"name":"TestRuleAppsRead",
+"category":"Security",
+"rule":"((user.name=\"demo1\"))",
+"type":"Custom",
+"privileges":["create","read","update"],
+"resourceFilter":"App_*",
+"actions":2,
+"ruleContext":"BothQlikSenseAndQMC",
+"disabled":false,"comment":""}
+
+
+DELETE RULE ?
+
+DELETE METHOD
+http://qsdemo/qrs/Selection/cd140cdf-c9f5-4030-adcc-192f3cdfdbfa/SystemRule?xrfkey=vkTMPUB4EvMAlBDj

@@ -8,6 +8,14 @@ body {
   background: white;
 }
 
+.btn-success {
+  background: #56A00E;
+}
+
+.btn-success:hover {
+  background: #56B00E;
+}
+
 #logo {
   height: 100%;
   margin-top: 5px;
@@ -23,7 +31,8 @@ body {
 }
 
 .gc {
-  color:#439a46;c
+  color:#56A00E;
+  font-weight: bold;
 }
 
 .topback {
@@ -31,6 +40,11 @@ body {
   background: white url(green-swirls-strip.jpg);
   background-position: top;
   background-repeat: repeat-x;
+}
+
+#pf {
+  background: url(green-tech.jpg);
+  height: 45px;
 }
 
 .navbar-brand {

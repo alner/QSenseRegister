@@ -1,7 +1,6 @@
 var https = require('https'),
   Promise = require('promise'),
-  crypto = require('crypto'),
-  uuid = require('node-uuid');
+  crypto = require('crypto');
 
 function generateXrfkey(size, chars) {
   size = size || 16;
@@ -19,11 +18,18 @@ function generateXrfkey(size, chars) {
 function makeHttpsRequest(settings, body, dataCallback){
   return new Promise(function(resolve, reject) {
     var req = https.request(settings, function (res) {
+      var d = '';
       res.on('data', function (data) {
+        d += data.toString();
+      })
+      .on('end', function(){
         if(dataCallback)
-          resolve(dataCallback({data: data, response: res}));
+          resolve(dataCallback({data: d, response: res}));
         else
-          resolve({data: data, response: res});
+          resolve({data: d, response: res});
+      })
+      .on('error', function(e){
+        reject(e);
       });
     });
 
