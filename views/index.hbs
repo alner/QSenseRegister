@@ -9,85 +9,102 @@
                   <img id="img" src="bd_remixability.png" class="hidden-xs">
                 </div>
                 <div class="col-md-9 col-sm-9">
-                  <h5 class="gc">Выберите и оцените возможности наших решений Qlik&nbsp;Sense</h5>
+                  <h5 class="gc">{{{translations.title}}}</h5>
                 </div>
               </div>
-              <div class="form-group">
-                <label for="industry" class="col-md-3 col-sm-3 col-xs-3 control-label">Область интереса</label>
+              <div class="form-group {{#if errors.industry}}has-error{{/if}}">
+                <label for="industry" class="col-md-3 col-sm-3 col-xs-3 control-label">{{{translations.industry}}}</label>
                 <div class="col-md-9 col-sm-9 col-xs-9">
                   <select class="form-control" id="industry" name="industry" required>
-                    <option value>Выбрать...</option>
+                    <option value>{{{translations.select}}}</option>
                     {{#each streams}}
-                    <option {{#if (../values) && this == (../values).industry }} selected="selected" {{/if}}>{{this}}</option>
+                    <option {{#if this.selected }} selected="selected" {{/if}}>{{this}}</option>
                     {{/each}}
                   </select>
+                  {{#if errors.industry}}
+                  <p class="bg-danger">{{errors.industry.error}}</p>
+                  {{/if}}
                 </div>
               </div>
-              <div class="form-group">
-                <label for="application" class="col-md-3 col-sm-3 col-xs-3 control-label">Демо-приложение</label>
+              <div class="form-group {{#if errors.application}}has-error{{/if}}">
+                <label for="application" class="col-md-3 col-sm-3 col-xs-3 control-label">{{{translations.application}}}</label>
                 <div class="col-md-9 col-sm-9 col-xs-9">
                   <select class="form-control" id="application" name="application" required>
-                    <option value>Выбрать...</option>
+                    <option value>{{{translations.select}}}</option>
                     {{#each apps}}
-                    <option>{{this.name}}</option>
+                    <option {{#if this.selected }} selected="selected" {{/if}}>{{this.name}}</option>
                     {{/each}}
                   </select>
+                  {{#if errors.application}}
+                  <p class="bg-danger">{{errors.application.error}}</p>
+                  {{/if}}
                 </div>
               </div>
-              <div class="form-group">
-                <label for="name" class="col-md-3 col-sm-3 col-xs-3 control-label">Имя</label>
+              <div class="form-group {{#if errors.name}}has-error{{/if}}">
+                <label for="name" class="col-md-3 col-sm-3 col-xs-3 control-label">{{{translations.name}}}</label>
                 <div class="col-md-9 col-sm-9 col-xs-9">
-                  <input type="text" required class="form-control" id="name" name="name" value="{{values.name}}" placeholder="Имя">
+                  <input type="text" required class="form-control" id="name" name="name" value="{{values.name}}" placeholder="{{{translations.name}}}">
+                  {{#if errors.name}}
+                  <p class="bg-danger">{{errors.name.error}}</p>
+                  {{/if}}
                 </div>
               </div>
-              <div class="form-group">
-                <label for="name" class="col-md-3 col-sm-3 col-xs-3 control-label">Фамилия</label>
+              <div class="form-group {{#if errors.surname}}has-error{{/if}}">
+                <label for="name" class="col-md-3 col-sm-3 col-xs-3 control-label">{{{translations.surname}}}</label>
                 <div class="col-md-9 col-sm-9 col-xs-9">
-                  <input type="text" required class="form-control" id="surname" name="surname" value="{{values.surname}}" placeholder="Фамилия">
+                  <input type="text" required class="form-control" id="surname" name="surname" value="{{values.surname}}" placeholder="{{{translations.surname}}}">
+                  {{#if errors.surname}}
+                  <p class="bg-danger">{{errors.surname.error}}</p>
+                  {{/if}}
                 </div>
               </div>
-              <div class="form-group">
-                <label for="email" class="col-md-3 col-sm-3 col-xs-3 control-label">Email</label>
+              <div class="form-group {{#if errors.email}}has-error{{/if}}">
+                <label for="email" class="col-md-3 col-sm-3 col-xs-3 control-label">{{{translations.email}}}</label>
                 <div class="col-md-9 col-sm-9 col-xs-9">
-                  <input type="email" required class="form-control" id="email" name="email" value="{{values.email}}" placeholder="Email">
+                  <input type="email" required class="form-control" id="email" name="email" value="{{values.email}}" placeholder="{{{translations.email}}}">
+                  {{#if errors.email}}
+                  <p class="bg-danger">{{errors.email.error}}</p>
+                  {{/if}}
                 </div>
               </div>
-              <div class="form-group">
-                <label for="phone" class="col-md-3 col-sm-3 col-xs-3 control-label">Телефон</label>
+              <div class="form-group {{#if errors.phone}}has-error{{/if}}">
+                <label for="phone" class="col-md-3 col-sm-3 col-xs-3 control-label">{{{translations.phone}}}</label>
                 <div class="col-md-9 col-sm-9 col-xs-9">
-                  <input type="tel" required class="form-control" id="phone" name="phone" value="{{values.phone}}" placeholder="Телефон">
+                  <input type="tel" required class="form-control" id="phone" name="phone" value="{{values.phone}}" placeholder="{{{translations.phone}}}">
+                  {{#if errors.phone}}
+                  <p class="bg-danger">{{errors.phone.error}}</p>
+                  {{/if}}
                 </div>
               </div>
-              <div class="form-group">
-                <label for="company" class="col-md-3 col-sm-3 col-xs-3 control-label">Компания</label>
+              <div class="form-group {{#if errors.company}}has-error{{/if}}">
+                <label for="company" class="col-md-3 col-sm-3 col-xs-3 control-label">{{{translations.company}}}</label>
                 <div class="col-md-9 col-sm-9 col-xs-9">
-                  <input type="text" required class="form-control" id="company" name="company" value="{{values.company}}" placeholder="Компания">
+                  <input type="text" required class="form-control" id="company" name="company" value="{{values.company}}" placeholder="{{{translations.company}}}">
+                  {{#if errors.company}}
+                  <p class="bg-danger">{{errors.company.error}}</p>
+                  {{/if}}
                 </div>
               </div>
-              <div class="form-group">
-                <label for="position" class="col-md-3 col-sm-3 col-xs-3 control-label">Должность</label>
+              <div class="form-group {{#if errors.position}}has-error{{/if}}">
+                <label for="position" class="col-md-3 col-sm-3 col-xs-3 control-label">{{{translations.position}}}</label>
                 <div class="col-md-9 col-sm-9 col-xs-9">
-                  <input type="text" required class="form-control" id="position" name="position" value="{{values.position}}" placeholder="Должность">
+                  <input type="text" required class="form-control" id="position" name="position" value="{{values.position}}" placeholder="{{{translations.position}}}">
+                  {{#if errors.position}}
+                  <p class="bg-danger">{{errors.position.error}}</p>
+                  {{/if}}
                 </div>
               </div>
               <div class="form-group">
                 <div class="g-recaptcha col-md-9 col-sm-9 col-xs-9 col-md-offset-3 col-sd-offset-3" data-sitekey="{{SITE_KEY}}">
                 </div>
+                {{#if errors.captcha}}
+                <p class="bg-danger">{{errors.captcha.error}}</p>
+                {{/if}}
               </div>
-
-              {{#if errors}}
-              <div class="alert alert-danger" role="alert">
-                <ul>
-                  {{#each errors }}
-                    <li>{{ this.msg }}</li>
-                  {{/each}}
-                </ul>
-              </div>
-              {{/if}}
 
               <div class="form-group">
                 <div class="col-md-3 col-sm-3 col-xs-3">
-                  <button type="submit" class="btn btn-success">Получить доступ</button>
+                  <button type="submit" class="btn btn-success">{{{translations.submit}}}</button>
                 </div>
               </div>
             </form>

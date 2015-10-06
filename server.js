@@ -17,6 +17,7 @@ var senseUtils = require('./utils');
 var requestTicket = require('./api').requestTicket;
 var repositoryGetApps = require('./api').repositoryGetApps;
 var config = require('./config.json');
+var translations = require('./views/translations');
 
 var https_options = {
   pfx: fs.readFileSync(path.resolve('certificates', config.certificates.pfx.client)),
@@ -42,6 +43,7 @@ var hbs = exphbs({
   defaultLayout: 'main',
   helpers: {
     eq: function(a,b){
+      console.log(a, b);
       return a == b;
     }
   }
@@ -91,16 +93,35 @@ function renderIndex(errors, values, req, res, next){
       var streams = {};
       if(apps && apps.length > 0) {
         apps.map(function(appinfo) {
-          streams[appinfo.stream.name] = appinfo.stream.name;
+          streams[appinfo.stream.name] = {
+            value: appinfo.stream.name,
+            toString: function(){
+              return this.value;
+            }
+          };
         });
       }
-      callback(null, Object.keys(streams), apps)
+      callback(null, streams, apps); // Object.keys(streams)
     }
   ], function(err, streams, apps){
     if(err) return next(err);
 
+    // selected stream/industry
+    if(values && streams[values.industry]) {
+      streams[values.industry].selected = true;
+    }
+
+    // selected application
+    if(values && values.application) {
+      apps.map(function(app) {
+        if(app.name == values.application)
+          app.selected = true;
+      });
+    }
+
     res.render('index',
       {
+        translations: translations.ru,
         streams: streams,
         apps: apps,
         errors: errors,
@@ -118,34 +139,55 @@ app.get('/', recaptcha.middleware.render, function(req, res, next){
 });
 
 app.post('/', function(req, res, next){
-  recaptcha.verify(req, function(error) {
-        if(!error) {
-          req.assert('industry', 'Сделайте выбор в поле "Область интереса"').notEmpty();
-          req.assert('application', 'Выберите приложение из списка "Демо-приложение"').notEmpty();
-          req.assert('name', 'Имя обязательно для заполнения').notEmpty();
-          req.assert('surname', 'Фамилия обязательна для заполнения').notEmpty();
-          req.assert('email', 'Поле "Email" обязательно для заполнения').notEmpty()
-          req.assert('email', 'Укажите правильный Email').isEmail();
-          req.assert('phone', 'Поле "Телефон" обязательно для заполнения').notEmpty();
-          req.assert('company', 'Поле "Компания" обязательно для заполнения').notEmpty();
-          req.assert('position', 'Поле "Должность" обязательно для заполнения').notEmpty();
+  var values = {};
+  values['industry'] = req.body.industry;
+  values['application'] = req.body.application;
+  values['name'] = req.body.name;
+  values['surname'] = req.body.surname;
+  values['email'] = req.body.email;
+  values['phone'] = req.body.phone;
+  values['company'] = req.body.company;
+  values['position'] = req.body.position;
 
-          var errors = req.validationErrors();
-          if(errors) {
-            var values = {}
-            errors.map(function(error){
-              values[error.param].msg = error.msg;
-              values[error.param].value = error.value;
+  recaptcha.verify(req, function(error) {
+        if(error) {
+          var errors = {};
+          errors.captcha = {
+            error: translations.ru.errors.captcha
+          };
+          renderIndex(errors, values, req, res, next);
+        } else {
+          req.assert('industry', translations.ru.errors.industry_notEmpty).notEmpty();
+          req.assert('application', translations.ru.errors.application_notEmpty).notEmpty();
+          req.assert('name', translations.ru.errors.name_notEmpty).notEmpty();
+          req.assert('surname', translations.ru.errors.surname_notEmpty).notEmpty();
+          req.assert('email', translations.ru.errors.email_notEmpty).notEmpty()
+          req.assert('email', translations.ru.errors.email_isEmail).isEmail();
+          req.assert('phone', translations.ru.errors.phone_notEmpty).notEmpty();
+          req.assert('company', translations.ru.errors.company_notEmpty).notEmpty();
+          req.assert('position', translations.ru.errors.position_notEmpty).notEmpty();
+
+          var validationErrors = req.validationErrors();
+          if(validationErrors) {
+            var errors = {};
+            validationErrors.map(function(error){
+              errors[error.param] = {
+                error: error.msg,
+                toString: function(){
+                  return this.error
+                }
+              };
             });
+
             renderIndex(errors, values, req, res, next);
           } else {
+            console.log('saved');
+            console.log(values);
+            res.end('saved!');
             // save to db
             // set access rule
             // send email
           }
-        }
-        else {
-          //error code
         }
   });
 });
