@@ -185,6 +185,7 @@ app.post('/', function(req, res, next){
             console.log(values);
             res.end('saved!');
             // save to db
+            // create sense user
             // set access rule
             // send email
           }
@@ -249,7 +250,7 @@ app.get('/auth', function(req, res, next){
 
 var server = https.createServer(https_options, app);
 server.listen(app.get('PORT'), function() {
-  var host = server.address().host;
+  var address = server.address().address;
   var port = server.address().port;
-  console.log('Listening https://%s:%s', host, port);
+  console.log('Listening https://%s:%s', address, port);
 });
