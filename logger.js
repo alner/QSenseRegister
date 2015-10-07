@@ -8,14 +8,14 @@ function getLogger(module) {
       transports: [
         new (winston.transports.Console)({
           colorize: true,
-          level: (ENV == 'development') ? 'debug' : 'error'
+          level: 'debug'//(ENV == 'development') ? 'debug' : 'error'
         }),
         new (winston.transports.File)({
-          filename: 'register.log',
+          filename: 'errors.log',
           level: 'error'
         })
       ]
   });
 }
 
-exports.logger = getLogger;
+module.exports = getLogger;

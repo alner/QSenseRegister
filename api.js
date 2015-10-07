@@ -4,7 +4,7 @@ var path = require('path');
 var makeHttpsRequest = require('./utils').makeHttpsRequest;
 var generateXrfkey = require('./utils').generateXrfkey;
 
-exports.requestTicket = function(user, directory, resturi, targetid, cert, passphrase) {
+exports.requestTicket = function(cert, passphrase, user, directory, resturi, targetid) {
   var urlObject = url.parse(resturi);
   var xrfkey = generateXrfkey();
 
@@ -23,14 +23,15 @@ exports.requestTicket = function(user, directory, resturi, targetid, cert, passp
     agent: false
   };
 
-  var data = JSON.stringify({
+  var data = {
     'UserDirectory':  directory,
     'UserId': user,
     'Attributes': [],
-    'TargetId': targetid
-  });
+  };
 
-  return makeHttpsRequest(options, data);
+  if(targetid) data.TargetId = targetid;
+
+  return makeHttpsRequest(options, JSON.stringify(data));
 }
 
 exports.repositoryGetApps = function repositoryGetApps(config, https_options){

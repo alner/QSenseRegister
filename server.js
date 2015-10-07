@@ -12,7 +12,12 @@ var https = require('https');
 var fs = require('fs');
 var path = require('path');
 var async = require('async');
+var moment = require('moment');
+var request = require('request');
+var querystring = require('querystring');
 
+var logger = require('./logger')(module);
+var db = require('./db');
 var senseUtils = require('./utils');
 var requestTicket = require('./api').requestTicket;
 var repositoryGetApps = require('./api').repositoryGetApps;
@@ -30,6 +35,7 @@ var https_options = {
 };
 
 process.env['NODE_TLS_REJECT_UNAUTHORIZED'] = '0';
+moment().local();
 
 var SITE_KEY = config.recaptcha.SITE_KEY;
 var SECRET_KEY = config.recaptcha.SECRET_KEY;
@@ -40,13 +46,7 @@ app.set('PORT', process.env.PORT || config.authmodule.port);
 
 var hbs = exphbs({
   extname:'hbs',
-  defaultLayout: 'main',
-  helpers: {
-    eq: function(a,b){
-      console.log(a, b);
-      return a == b;
-    }
-  }
+  defaultLayout: 'main'
 });
 
 app.engine('hbs', hbs);
@@ -69,6 +69,10 @@ app.use(session({
   }
 }));
 
+
+/**
+  * Render index page
+  */
 function renderIndex(errors, values, req, res, next){
   async.waterfall([
     function(callback){
@@ -130,7 +134,6 @@ function renderIndex(errors, values, req, res, next){
         SITE_KEY: SITE_KEY
       }
     );
-
   });
 }
 
@@ -139,15 +142,30 @@ app.get('/', recaptcha.middleware.render, function(req, res, next){
 });
 
 app.post('/', function(req, res, next){
+  var now = moment();
   var values = {};
-  values['industry'] = req.body.industry;
-  values['application'] = req.body.application;
-  values['name'] = req.body.name;
-  values['surname'] = req.body.surname;
-  values['email'] = req.body.email;
-  values['phone'] = req.body.phone;
-  values['company'] = req.body.company;
-  values['position'] = req.body.position;
+  values.industry = req.body.industry;
+  values.application = req.body.application;
+  values.name = req.body.name;
+  values.surname = req.body.surname;
+  values.email = req.body.email;
+  values.phone = req.body.phone;
+  values.company = req.body.company;
+  values.position = req.body.position;
+  values.login = uuid.v4().toString();
+  values.lang = 'ru';
+  values.registeredDate = now.format('DD-MM-YYYY HH:mm:ss');
+  values.grantedDate = now.add({days: 2}).format('DD-MM-YYYY HH:mm:ss');
+  values.state = 0;
+  // enum RegistrationState : byte
+  // {
+  //     Registered = 0,
+  //     Deleted = 1,
+  //     NoLicense = 2,
+  //     Granted = 3,
+  //     Accessed = 4,
+  //     NotifyRegistration = 5
+  // }
 
   recaptcha.verify(req, function(error) {
         if(error) {
@@ -181,19 +199,57 @@ app.post('/', function(req, res, next){
 
             renderIndex(errors, values, req, res, next);
           } else {
-            console.log('saved');
-            console.log(values);
-            res.end('saved!');
-            // save to db
-            // create sense user
-            // set access rule
-            // send email
+            // TODO: send email
+
+            async.waterfall([
+
+              function(callback){
+                  // Save to db
+                  db.insert(values).then(function(){
+                      logger.info('Data saved!');
+                      logger.info(values);
+                      callback(null, values);
+                  }).catch(function(err){
+                      callback(err, values);
+                  });
+              },
+
+              function(values, callback){
+                // Create qlik sense user login
+                var proxyRestUri = 'http://' + config.hub.host + ':' + config.hub.port + config.hub.url;
+                var req_url = 'https://' + config.authmodule.host + ':' +
+                  config.authmodule.port +
+                  '/auth?userId=' + values.login +
+                  '&proxyRestUri=' + proxyRestUri;
+
+                request.get(req_url)
+                .on('response', function(response){
+                  callback(null, response);
+                })
+                .on('error', function(err) {
+                  callback(err);
+                });
+              }
+
+            ],
+            function(err, response){
+                if(err) {
+                  logger.error(err);
+                  return next(err);
+                }
+                if(response.statusCode === 200)
+                  res.redirect(response.request.uri.href);
+                else return next(401);
+            });
           }
         }
   });
 });
 
-// get app list
+
+/**
+  * Get app list for appropriate stream
+  */
 app.get('/api/:stream/apps', function(req, res, next){
   var stream = req.params.stream;
   repositoryGetApps(config, https_options)
@@ -208,49 +264,149 @@ app.get('/api/:stream/apps', function(req, res, next){
     res.json(apps);
   })
   .catch(function(err){
-    console.error(err);
+    logger.error(err);
     next(err);
   });
 });
+
+
+/**
+  * Auth module
+  */
+function makeRequestTicketStep(userId, req) {
+  return function(response, callback) {
+      var query = response.request.uri.query;
+      if(!query)
+        return callback(401);
+
+      var par = querystring.parse(query);
+      if(!par.proxyRestUri || !par.targetId)
+        return callback(401);
+
+      requestTicket(
+        https_options.pfx,
+        https_options.passphrase,
+        userId,
+        config.authmodule.UserDirectory,
+        par.proxyRestUri,
+        par.targetId
+      ).then(function(data){
+        callback(null, data);
+      })
+      .catch(function(err){
+        callback(err);
+      });
+  }
+}
+
+function makeHubRequestStep(url) {
+  return function(callback) {
+    request.get(url)
+    .on('response', function(response){
+      if(response && response.statusCode === 401) {
+        callback(null, response);
+      } else {
+        callback(response);
+      }
+    })
+    .on('error', function(err) {
+      callback(err);
+    });
+  }
+}
 
 app.get('/auth', function(req, res, next){
   req.session.targetId = req.query.targetId;
   req.session.resturi = req.query.proxyRestUri;
+  req.session.userId = req.query.userId;
 
-  var user_login = uuid.v4().toString();
+  if(!req.session.userId) return res.sendStatus(401);
 
-  if(req.session.resturi)
-  requestTicket(user_login, 'DEMOAPPS', req.session.resturi, req.session.targetId,
-  https_options.pfx, https_options.passphrase)
-  .then(function(response){
-    if(response && response.data) {
-      //console.log(response.data.toString());
-      var data = JSON.parse(response.data.toString());
-      if(data && data.Ticket) {
-          var redirectURI;
+  var authSteps = [];
+  authSteps.push(makeHubRequestStep(req.session.resturi));
+  authSteps.push(makeRequestTicketStep(req.session.userId, req));
 
-          if (data.TargetUri && data.TargetUri.indexOf("?") > 0) {
+  async.waterfall(authSteps,
+    function(err, result) {
+      req.session.destroy();
+      if(err) {
+        logger.error(err);
+        return next(err);
+      }
+      if(result && result.data) {
+        var data = JSON.parse(result.data.toString());
+        var redirectURI;
+
+        if (data.TargetUri) {
+          if(data.TargetUri.indexOf("?") > 0) {
             redirectURI = data.TargetUri + '&qlikTicket=' + data.Ticket;
           } else {
             redirectURI = data.TargetUri + '?qlikTicket=' + data.Ticket;
           }
-
           res.redirect(redirectURI);
-          console.log("Login redirect:", redirectURI);
-      } else res.sendStatus(401); // authentication is possible but has failed
-    } else res.sendStatus(401);
-  })
-  .catch(function(err){
-    console.error(err);
-    next(err);
-  });
+          logger.log("Login redirect:", redirectURI);
+        } else {
+          res.sendStatus(200);
+          logger.log("Auth 200 OK ", data.Ticket);
+        }
+      } else res.sendStatus(401);
+    }
+  );
+
+  //var user_login = uuid.v4().toString();
+  /*
+  if(req.session.resturi) {
+      requestTicket(
+        https_options.pfx,
+        https_options.passphrase,
+        req.session.userId,
+        config.authmodule.UserDirectory,
+        req.session.resturi,
+        req.session.targetId
+      ).then(function(response){
+        if(response && response.data) {
+          //console.log(response.data.toString());
+          var data = JSON.parse(response.data.toString());
+          if(data && data.Ticket) {
+              var redirectURI;
+
+              if (data.TargetUri) {
+                if(data.TargetUri.indexOf("?") > 0) {
+                  redirectURI = data.TargetUri + '&qlikTicket=' + data.Ticket;
+                } else {
+                  redirectURI = data.TargetUri + '?qlikTicket=' + data.Ticket;
+                }
+                res.redirect(redirectURI);
+                logger.log("Login redirect:", redirectURI);
+              } else {
+                res.sendStatus(200);
+                logger.log("Auth 200 OK ", data.Ticket);
+              }
+          } else res.sendStatus(401); // authentication is possible but has failed
+        } else res.sendStatus(401);
+      })
+      .catch(function(err){
+        logger.error(err);
+        next(err);
+      });
+  } else res.sendStatus(401);
 
   req.session.destroy();
+  */
 });
 
-var server = https.createServer(https_options, app);
-server.listen(app.get('PORT'), function() {
-  var address = server.address().address;
-  var port = server.address().port;
-  console.log('Listening https://%s:%s', address, port);
+// Connect to db, run web app
+db.connect().then(function(){
+  return db.prepare();
+}).then(function(){
+  var server = https.createServer(https_options, app);
+  server.listen(app.get('PORT'), function() {
+    var address = server.address().address;
+    var port = server.address().port;
+    logger.info('Listening https://%s:%s', address, port);
+  });
+}).catch(function(err){
+  logger.error(err);
+  if(db.isConnected)
+    db.close();
 });

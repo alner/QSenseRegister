@@ -1,4 +1,5 @@
 var sql = require('mssql');
+var logger = require('./logger')(module);
 var config = require('./config.json').db;
 
 var SQL = " set dateformat dmy " +
@@ -13,14 +14,18 @@ exports.connect = function connect(cb) {
   return connection.connect(cb);
 };
 
+exports.isConnected = function isConnected(){
+  return connection.connected;
+};
+
 exports.close = function close() {
   if(ps) {
     ps.unprepare(function(err){
-      if(err) console.error(err);
+      if(err) logger.error(err);
     });
   }
   connection.close();
-}
+};
 
 exports.prepare = function prepare(cb){
   ps = new sql.PreparedStatement(connection);

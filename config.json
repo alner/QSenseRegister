@@ -1,10 +1,17 @@
 {
   "authmodule": {
-    "port": 8888
+    "host": "localhost",
+    "port": 8888,
+    "UserDirectory": "DEMOAPPS"
   },
   "recaptcha": {
     "SITE_KEY": "6LesAA4TAAAAAD1rn9Jfy6ENT_1pa2IK6eWy_mVJ",
     "SECRET_KEY": "6LesAA4TAAAAAMPKGwWayCuStiJHtSh8m6uOPkDh"
+  },
+  "hub": {
+    "host": "qsdemo.rbcgrp.com",
+    "port": 80,
+    "url": "/demosenseapps/hub"
   },
   "repository": {
     "host": "qsdemo.rbcgrp.com",
