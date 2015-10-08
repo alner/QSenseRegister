@@ -155,8 +155,8 @@ app.post('/', function(req, res, next){
   values.position = req.body.position;
   values.login = uuid.v4().toString();
   values.lang = 'ru';
-  values.registeredDate = now.format('DD-MM-YYYY HH:mm:ss');
-  values.grantedDate = now.add({days: 2}).format('DD-MM-YYYY HH:mm:ss');
+  values.registeredDate = now.format(db.DateTimeFormat);
+  values.grantedDate = now.add({days: config.authmodule.AccessDays}).format(db.DateTimeFormat);
   values.state = 0;
   // enum RegistrationState : byte
   // {
@@ -200,7 +200,6 @@ app.post('/', function(req, res, next){
 
             renderIndex(errors, values, req, res, next);
           } else {
-            // TODO: send email
 
             async.waterfall([
 
@@ -219,28 +218,31 @@ app.post('/', function(req, res, next){
               function(values, callback){
                 // Create qlik sense user login
                 var appId = values.application.split('|')[0];
+                var appTitle = values.application.split('|')[1];
                 var proxyRestUri = makeAppUrl(appId);
+                var authQuery = '/auth?userId=' + values.login +
+                '&appId=' + appId +
+                '&proxyRestUri=' + proxyRestUri;
 
                 // Auth module url
-                var req_url = 'https://' + config.authmodule.host + ':' +
-                  config.authmodule.port +
-                  '/auth?userId=' + values.login +
-                  '&proxyRestUri=' + proxyRestUri;
+                var req_url = config.authmodule.external_url + authQuery;
+                //'https://' + config.authmodule.host + ':' + config.authmodule.port
 
-                  res.redirect(req_url);
-                  callback(null, values);
-                // request.get(req_url)
-                // .on('response', function(response){
-                //   callback(null, response);
-                // })
-                // .on('error', function(err) {
-                //   callback(err);
-                // });
+                // used in email
+                values.access_url = req_url;
+                values.applicationTitle = appTitle;
+
+                res.redirect(req_url);
+                callback(null, values);
               },
 
               // Send email
               function(values, callback) {
-                mailer.sendMail(values.email).then(function(info){
+                mailer.sendMail(values.email, // email
+                  config.mail.subject[values.lang], // email subject
+                  values, // context/data
+                  "message." + values.lang // email template
+                ).then(function(info){
                   callback(null, values);
                   logger.info(info);
                 }).catch(function(err){
@@ -331,7 +333,7 @@ function makeRequestTicketStep(userId, req) {
 }
 
 function makeHubRequestStep(url) {
-  return function(callback) {
+  return function(response, callback) {
     request.get(url)
     .on('response', function(response){
       if(response && response.statusCode === 401) {
@@ -341,6 +343,22 @@ function makeHubRequestStep(url) {
       }
     })
     .on('error', function(err) {
+      callback(err);
+    });
+  }
+}
+
+function makeCheckDbRequest(userId, appId) {
+  return function(callback){
+    var now = moment().format(db.DateTimeFormat);
+    db.query(userId, appId, now).then(function(data){
+      if(data && data[0].Login && !data[0].Deleted) {
+        callback(null, data[0]);
+      } else {
+        callback(404); // requested resource could not be found
+      }
+    }).catch(function(err){
+      logger.error(err);
       callback(err);
     });
   }
@@ -361,15 +379,17 @@ app.get('/auth', function(req, res, next){
   req.session.targetId = req.query.targetId;
   req.session.resturi = req.query.proxyRestUri;
   var userId = req.query.userId;
-  //var appId = req.query.appId;
+  var appId = req.query.appId;
 
   if(!userId
+  || !appId
   || !req.session.resturi)
     return res.sendStatus(401);
 
   //if(!userId) userId = 'test';
 
   var authSteps = [];
+  authSteps.push(makeCheckDbRequest(userId, appId + '%'));
   authSteps.push(makeHubRequestStep(req.session.resturi));
   authSteps.push(makeRequestTicketStep(userId, req));
 

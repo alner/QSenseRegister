@@ -2,13 +2,10 @@ var sql = require('mssql');
 var logger = require('./logger')(module);
 var config = require('./config.json').db;
 
-var SQL = " set dateformat dmy " +
-"insert into [dbo].[RegistrationInfoes] " +
-"([Surname], [Name], [Email], [Phone], [Position], [Company], [IndustryID], [SelectedApplication], [Login], [Lang], Registered, Granted, State) " +
-" values(@surname, @name, @email, @phone, @position, @company, @industry, @application, @login, @lang, @registeredDate, @grantedDate, @state)";
-
 var connection = new sql.Connection(config);
 var ps;
+
+exports.DateTimeFormat = 'DD-MM-YYYY HH:mm:ss';
 
 exports.connect = function connect(cb) {
   return connection.connect(cb);
@@ -24,10 +21,17 @@ exports.close = function close() {
       if(err) logger.error(err);
     });
   }
-  connection.close();
+
+  if(connection.connected)
+    connection.close();
 };
 
 exports.prepare = function prepare(cb){
+  var SQL = " set dateformat dmy " +
+  "insert into [dbo].[RegistrationInfoes] " +
+  "([Surname], [Name], [Email], [Phone], [Position], [Company], [IndustryID], [SelectedApplication], [Login], [Lang], Registered, Granted, State) " +
+  " values(@surname, @name, @email, @phone, @position, @company, @industry, @application, @login, @lang, @registeredDate, @grantedDate, @state)";
+
   ps = new sql.PreparedStatement(connection);
   ps.input('surname', sql.NVarChar);
   ps.input('name', sql.NVarChar);
@@ -46,9 +50,14 @@ exports.prepare = function prepare(cb){
   return ps.prepare(SQL, cb);
 };
 
-exports.query = function(userid) {
-  //var request = new sql.Request();
-  //request
+exports.query = function(userid, appId, nowDate) {
+  var SQL = "set dateformat dmy " +
+  "select * from [dbo].[RegistrationInfoes] where Login=@login and SelectedApplication like @application and Granted > @grantedDate";
+  var request = new sql.Request(connection);
+  request.input('login', sql.NVarChar, userid);
+  request.input('application', sql.NVarChar, appId);
+  request.input('grantedDate', sql.NVarChar, nowDate);
+  return request.query(SQL);
 }
 
 exports.insert = function insert(data, cb) {

@@ -2,7 +2,9 @@
   "authmodule": {
     "host": "localhost",
     "port": 8888,
-    "UserDirectory": "DEMOAPPS"
+    "external_url": "https://localhost:8888",
+    "UserDirectory": "DEMOAPPS",
+    "AccessDays": 2
   },
   "recaptcha": {
     "SITE_KEY": "6LesAA4TAAAAAD1rn9Jfy6ENT_1pa2IK6eWy_mVJ",
@@ -37,6 +39,9 @@
   "mail": {
     "service": "Gmail",
     "user": "registration@rbcgrp.com",
-    "pass": "20QlikView13"
+    "pass": "20QlikView13",
+    "subject": {
+      "ru": "Qlik Sense регистрация"
+    }
   }
 }
