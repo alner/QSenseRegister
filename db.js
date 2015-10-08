@@ -46,6 +46,11 @@ exports.prepare = function prepare(cb){
   return ps.prepare(SQL, cb);
 };
 
+exports.query = function(userid) {
+  //var request = new sql.Request();
+  //request
+}
+
 exports.insert = function insert(data, cb) {
   if(!ps) return null;
 

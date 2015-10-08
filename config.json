@@ -9,9 +9,8 @@
     "SECRET_KEY": "6LesAA4TAAAAAMPKGwWayCuStiJHtSh8m6uOPkDh"
   },
   "hub": {
-    "host": "qsdemo.rbcgrp.com",
-    "port": 80,
-    "url": "/demosenseapps/hub"
+    "host": "qsdemo",
+    "url": "/demosenseapps"
   },
   "repository": {
     "host": "qsdemo.rbcgrp.com",
@@ -34,5 +33,10 @@
     "password": "123456",
     "server": "localhost\\SQLEXPRESS",
     "database": "SenserRegister"
+  },
+  "mail": {
+    "service": "Gmail",
+    "user": "registration@rbcgrp.com",
+    "pass": "20QlikView13"
   }
 }

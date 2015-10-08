@@ -21,6 +21,8 @@
     "handlebars-helpers": "^0.5.8",
     "moment": "^2.10.6",
     "node-uuid": "^1.4.3",
+    "nodemailer": "^1.7.0",
+    "nodemailer-express-handlebars": "^1.0.0",
     "promise": "^7.0.4",
     "request": "^2.64.0",
     "winston": "^1.0.2"

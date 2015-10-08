@@ -32,7 +32,7 @@
                   <select class="form-control" id="application" name="application" required>
                     <option value>{{{translations.select}}}</option>
                     {{#each apps}}
-                    <option {{#if this.selected }} selected="selected" {{/if}}>{{this.name}}</option>
+                    <option value="{{this.id}}|{{this.name}}" {{#if this.selected }} selected="selected" {{/if}}>{{this.name}}</option>
                     {{/each}}
                   </select>
                   {{#if errors.application}}
@@ -125,7 +125,7 @@ $(document).ready(function(){
         apps$.empty();
         var apps = [];
         $.each(data, function (key, val) {
-          apps.push($('<option>' + val.name + '</option>'));
+          apps.push($('<option value="' + val.id + '|' + val.name + '">' + val.name + '</option>'));
         });
         apps$.append(apps);
       });
