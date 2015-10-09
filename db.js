@@ -5,6 +5,17 @@ var config = require('./config.json').db;
 var connection = new sql.Connection(config);
 var ps;
 
+var RegistrationState = {
+  Registered: 0,
+  Deleted: 1,
+  NoLicense: 2,
+  Granted: 3,
+  Accessed: 4,
+  NotifyRegistration: 5
+};
+
+exports.RegistrationState = RegistrationState;
+
 exports.DateTimeFormat = 'DD-MM-YYYY HH:mm:ss';
 
 exports.connect = function connect(cb) {
@@ -30,27 +41,27 @@ exports.prepare = function prepare(cb){
   var SQL = " set dateformat dmy " +
   "insert into [dbo].[RegistrationInfoes] " +
   "([Surname], [Name], [Email], [Phone], [Position], [Company], [IndustryID], [SelectedApplication], [Login], [Lang], Registered, Granted, State) " +
-  " values(@surname, @name, @email, @phone, @position, @company, @industry, @application, @login, @lang, @registeredDate, @grantedDate, @state)";
+  " values(@Surname, @Name, @Email, @Phone, @Position, @Company, @IndustryID, @SelectedApplication, @Login, @Lang, @Registered, @Granted, @State)";
 
   ps = new sql.PreparedStatement(connection);
-  ps.input('surname', sql.NVarChar);
-  ps.input('name', sql.NVarChar);
-  ps.input('email', sql.NVarChar);
-  ps.input('phone', sql.NVarChar);
-  ps.input('position', sql.NVarChar);
-  ps.input('company', sql.NVarChar);
-  ps.input('industry', sql.NVarChar);
-  ps.input('application', sql.NVarChar);
-  ps.input('login', sql.NVarChar);
-  ps.input('lang', sql.NVarChar);
-  ps.input('registeredDate', sql.NVarChar);
-  ps.input('grantedDate', sql.NVarChar);
-  ps.input('state', sql.TinyInt);
+  ps.input('Surname', sql.NVarChar);
+  ps.input('Name', sql.NVarChar);
+  ps.input('Email', sql.NVarChar);
+  ps.input('Phone', sql.NVarChar);
+  ps.input('Position', sql.NVarChar);
+  ps.input('Company', sql.NVarChar);
+  ps.input('IndustryID', sql.NVarChar);
+  ps.input('SelectedApplication', sql.NVarChar);
+  ps.input('Login', sql.NVarChar);
+  ps.input('Lang', sql.NVarChar);
+  ps.input('Registered', sql.NVarChar);
+  ps.input('Granted', sql.NVarChar);
+  ps.input('State', sql.TinyInt, RegistrationState.Registered);
 
   return ps.prepare(SQL, cb);
 };
 
-exports.query = function(userid, appId, nowDate) {
+exports.queryByUserAndApp = function(userid, appId, nowDate) {
   var SQL = "set dateformat dmy " +
   "select * from [dbo].[RegistrationInfoes] where Login=@login and SelectedApplication like @application and Granted > @grantedDate";
   var request = new sql.Request(connection);
@@ -58,10 +69,30 @@ exports.query = function(userid, appId, nowDate) {
   request.input('application', sql.NVarChar, appId);
   request.input('grantedDate', sql.NVarChar, nowDate);
   return request.query(SQL);
-}
+};
+
+exports.queryOverdueNotDeletedRecords = function(nowDate){
+  var SQL = "set dateformat dmy " +
+  "select * from [dbo].[RegistrationInfoes] where Deleted is null and Granted < @now";
+  var request = new sql.Request(connection);
+  request.input('now', sql.NVarChar, nowDate);
+  return request.query(SQL);
+};
+
+exports.setDeletedStateFor = function(id, deletedDate) {
+  var SQL = "set dateformat dmy " +
+    " update [dbo].[RegistrationInfoes] set Deleted = @deletedDate, State = @state " +
+    " where RegistrationInfoID = @id ";
+
+  var request = new sql.Request(connection);
+  request.input('deletedDate', sql.NVarChar, deletedDate);
+  request.input('state', sql.TinyInt, RegistrationState.Deleted);
+  request.input('id', sql.Int, id);
+  return request.query(SQL);
+};
 
 exports.insert = function insert(data, cb) {
   if(!ps) return null;
-
+  data.State = RegistrationState.Registered;
   return ps.execute(data, cb);
 };

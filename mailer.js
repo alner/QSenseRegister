@@ -7,6 +7,7 @@ var hbsOptions = {
   viewEngine: {
     extname: '.hbs',
     layoutsDir: 'views/email/',
+    partialsDir: 'views/email/partials/',
     defaultLayout: 'main'
   },
   viewPath: 'views/email/',

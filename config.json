@@ -41,7 +41,10 @@
     "user": "registration@rbcgrp.com",
     "pass": "20QlikView13",
     "subject": {
-      "ru": "Qlik Sense регистрация"
+      "ru": "Qlik Sense: регистрация"
+    },
+    "AccessClosedSubject": {
+      "ru": "Qlik Sense: уведомление о завершении доступа"
     }
   }
 }

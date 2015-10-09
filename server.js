@@ -112,14 +112,14 @@ function renderIndex(errors, values, req, res, next){
     if(err) return next(err);
 
     // selected stream/industry
-    if(values && streams[values.industry]) {
-      streams[values.industry].selected = true;
+    if(values && streams[values.IndustryID]) {
+      streams[values.IndustryID].selected = true;
     }
 
     // selected application
-    if(values && values.application) {
+    if(values && values.SelectedApplication) {
       apps.map(function(app) {
-        if(app.name == values.application)
+        if(app.name == values.SelectedApplication)
           app.selected = true;
       });
     }
@@ -145,28 +145,22 @@ app.get('/', recaptcha.middleware.render, function(req, res, next){
 app.post('/', function(req, res, next){
   var now = moment();
   var values = {};
-  values.industry = req.body.industry;
-  values.application = req.body.application;
-  values.name = req.body.name;
-  values.surname = req.body.surname;
-  values.email = req.body.email;
-  values.phone = req.body.phone;
-  values.company = req.body.company;
-  values.position = req.body.position;
-  values.login = uuid.v4().toString();
-  values.lang = 'ru';
-  values.registeredDate = now.format(db.DateTimeFormat);
-  values.grantedDate = now.add({days: config.authmodule.AccessDays}).format(db.DateTimeFormat);
-  values.state = 0;
-  // enum RegistrationState : byte
-  // {
-  //     Registered = 0,
-  //     Deleted = 1,
-  //     NoLicense = 2,
-  //     Granted = 3,
-  //     Accessed = 4,
-  //     NotifyRegistration = 5
-  // }
+  // industry
+  values.IndustryID = req.body.industry;
+  // application
+  values.SelectedApplication = req.body.application;
+  values.Name = req.body.name;
+  values.Surname = req.body.surname;
+  values.Email = req.body.email;
+  values.Phone = req.body.phone;
+  values.Company = req.body.company;
+  values.Position = req.body.position;
+  values.Login = uuid.v4().toString();
+  values.Lang = 'ru';
+  // registeredDate
+  values.Registered = now.format(db.DateTimeFormat);
+  // grantedDate
+  values.Granted = now.add({days: config.authmodule.AccessDays}).format(db.DateTimeFormat);
 
   recaptcha.verify(req, function(error) {
         if(error) {
@@ -217,12 +211,11 @@ app.post('/', function(req, res, next){
               // Qlik Sense document redirect, through auth module
               function(values, callback){
                 // Create qlik sense user login
-                var appId = values.application.split('|')[0];
-                var appTitle = values.application.split('|')[1];
+                var appId = values.SelectedApplication.split('|')[0];
+                var appTitle = values.SelectedApplication.split('|')[1];
                 var proxyRestUri = makeAppUrl(appId);
-                var authQuery = '/auth?userId=' + values.login +
-                '&appId=' + appId +
-                '&proxyRestUri=' + proxyRestUri;
+                var authQuery = '/auth?userId=' + values.Login + '&appId=' + appId;
+                //'&proxyRestUri=' + proxyRestUri;
 
                 // Auth module url
                 var req_url = config.authmodule.external_url + authQuery;
@@ -238,10 +231,10 @@ app.post('/', function(req, res, next){
 
               // Send email
               function(values, callback) {
-                mailer.sendMail(values.email, // email
-                  config.mail.subject[values.lang], // email subject
+                mailer.sendMail(values.Email, // email
+                  config.mail.subject[values.Lang], // email subject
                   values, // context/data
-                  "message." + values.lang // email template
+                  "message." + values.Lang // email template
                 ).then(function(info){
                   callback(null, values);
                   logger.info(info);
@@ -299,21 +292,24 @@ app.get('/api/:stream/apps', function(req, res, next){
   * Auth module
   */
 function makeRequestTicketStep(userId, req) {
-  var proxyRestUri = req.session.resturi;
-  var targetId = req.session.targetId;
   return function(response, callback) {
-      var query = response && response.request && response.request.uri && response.request.uri.query;
-      var par;
-      if(query) {
-        par = querystring.parse(query);
-        if(!par.proxyRestUri || !par.targetId)
-          return callback(401);
-      } else {
-        par = {
-          proxyRestUri: proxyRestUri,
-          targetId: targetId
-        };
-      }
+      //var targetId = req.session.targetId;
+      var query = response && response.request
+        && response.request.uri && response.request.uri.query;
+
+      if(!query)
+        return callback(401);
+
+      var par = querystring.parse(query);
+      if(!par.proxyRestUri || !par.targetId)
+        return callback(401);
+
+      // } else {
+      //   par = {
+      //     proxyRestUri: proxyRestUri,
+      //     targetId: targetId
+      //   };
+      // }
 
       requestTicket(
         https_options.pfx,
@@ -351,13 +347,15 @@ function makeHubRequestStep(url) {
 function makeCheckDbRequest(userId, appId) {
   return function(callback){
     var now = moment().format(db.DateTimeFormat);
-    db.query(userId, appId, now).then(function(data){
-      if(data && data[0].Login && !data[0].Deleted) {
+    db.queryByUserAndApp(userId, appId, now)
+    .then(function(data){
+      if(data && data[0].Login && !data[0].Deleted){
         callback(null, data[0]);
       } else {
         callback(404); // requested resource could not be found
       }
-    }).catch(function(err){
+    })
+    .catch(function(err){
       logger.error(err);
       callback(err);
     });
@@ -376,27 +374,28 @@ function makeAppUrl(appId) {
 }
 
 app.get('/auth', function(req, res, next){
-  req.session.targetId = req.query.targetId;
-  req.session.resturi = req.query.proxyRestUri;
+  var targetId = req.query.targetId;
+  var resturi = req.query.proxyRestUri;
   var userId = req.query.userId;
   var appId = req.query.appId;
 
-  if(!userId
-  || !appId
-  || !req.session.resturi)
+  if(!userId || !appId)
     return res.sendStatus(401);
+
+  if(!resturi)
+    resturi = makeAppUrl(appId);
 
   //if(!userId) userId = 'test';
 
   var authSteps = [];
   authSteps.push(makeCheckDbRequest(userId, appId + '%'));
-  authSteps.push(makeHubRequestStep(req.session.resturi));
+  authSteps.push(makeHubRequestStep(resturi));
   authSteps.push(makeRequestTicketStep(userId, req));
 
   async.waterfall(authSteps,
     function(err, result) {
-      if(req.session)
-        req.session.destroy();
+      // if(req.session)
+      //   req.session.destroy();
 
       if(err) {
         logger.error(err);

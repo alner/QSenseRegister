@@ -1,3 +1,1 @@
-*Test*
-
-https://qsdemo/demosenseapps/hub
+**Sense Register System**

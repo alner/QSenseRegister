@@ -5,8 +5,10 @@ function getLogger(module) {
   var path = module.filename.split('/').slice(-2).join('/');
 
   return new (winston.Logger)({
+      exitOnError: false,
       transports: [
         new (winston.transports.Console)({
+          timestamp: true,
           colorize: true,
           level: 'debug'//(ENV == 'development') ? 'debug' : 'error'
         }),
