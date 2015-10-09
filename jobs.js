@@ -4,7 +4,8 @@ var moment = require('moment');
 var logger = require('./logger')(module);
 var db = require('./db');
 var mailer = require('./mailer');
-var config = require('./config.json');
+var config = require('./config');
+var api = require('./api');
 
 moment().local();
 
@@ -22,12 +23,24 @@ var job = new CronJob('* */1 * * * *', // run every 1 minutes
     db.queryOverdueNotDeletedRecords(formatedDate)
     .then(function(recordSet){
       recordSet.forEach(function(record){
-        db.setDeletedStateFor(record.RegistrationInfoID, formatedDate)
+        // Delete Qlik Sense login
+        api.deleteUser(
+          config.https_options.pfx,
+          config.https_options.passphrase,
+          record.Login,
+          config.config.authmodule.UserDirectory,
+          config.getProxyUrl()
+        )
+        .then(function(info){
+          console.log(info);
+          // Save to db
+          return db.setDeletedStateFor(record.RegistrationInfoID, formatedDate);
+        })
         .then(function(){
-            logger.info('Access closed for ' + record.RegistrationInfoID);
             // Send Email notification
+            logger.info('Access closed for ' + record.RegistrationInfoID);
             mailer.sendMail(record.Email, // email
-              config.mail.AccessClosedSubject[record.Lang], // email subject
+              config.config.mail.AccessClosedSubject[record.Lang], // email subject
               record, // context/data
               "accessClosed." + record.Lang // email template
             ).then(function(info){

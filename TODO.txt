@@ -21,3 +21,11 @@ DELETE RULE ?
 
 DELETE METHOD
 http://qsdemo/qrs/Selection/cd140cdf-c9f5-4030-adcc-192f3cdfdbfa/SystemRule?xrfkey=vkTMPUB4EvMAlBDj
+
+DELETE USER
+1. POST http://qsdemo/qrs/Selection?xrfkey=MrvOccqQO2dBm11z
+  BODY: {"items":[{"type":"User","objectID":"a4e58acc-eeda-48cd-9b50-b65fc612d10d"}]}
+  RESPONSE: {"id":"7ca7294e-3b29-4eb4-9e37-d56bf0f3e419","createdDate":"1753-01-01T00:00:00.000Z","modifiedDate":"1753-01-01T00:00:00.000Z","modifiedByUserName":"RBCGRP\\nerush","items":[{"id":"c5dcdb7f-b7a1-4dc8-9429-f3d294f3a854","createdDate":"1753-01-01T00:00:00.000Z","modifiedDate":"1753-01-01T00:00:00.000Z","modifiedByUserName":"RBCGRP\\nerush","type":"User","objectID":"a4e58acc-eeda-48cd-9b50-b65fc612d10d","objectName":"","schemaPath":"Selection.Item"}],"privileges":null,"schemaPath":"Selection"}
+2. DELETE http://qsdemo/qrs/Selection/7ca7294e-3b29-4eb4-9e37-d56bf0f3e419/User?xrfkey=MrvOccqQO2dBm11z
+3. DELETE http://qsdemo/qrs/Selection/7ca7294e-3b29-4eb4-9e37-d56bf0f3e419?xrfkey=MrvOccqQO2dBm11z
+http://qsdemo/qrs/Selection/d81b34fd-11a2-490d-b683-92941b0a8d37/User?xrfkey=jvqrubBjfaWndFuu

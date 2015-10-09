@@ -21,19 +21,10 @@ var db = require('./db');
 var makeHttpsRequest = require('./utils').makeHttpsRequest;
 var requestTicket = require('./api').requestTicket;
 var repositoryGetApps = require('./api').repositoryGetApps;
-var config = require('./config.json');
+var config = require('./config').config;
+var https_options = require('./config').https_options;
 var translations = require('./views/translations');
 var mailer = require('./mailer');
-
-var https_options = {
-  pfx: fs.readFileSync(path.resolve('certificates', config.certificates.pfx.client)),
-  pem: {
-    key: fs.readFileSync(path.resolve('certificates', config.certificates.pem.key)),
-    cert: fs.readFileSync(path.resolve('certificates', config.certificates.pem.cert)),
-    ca: fs.readFileSync(path.resolve('certificates', config.certificates.pem.ca))
-  },
-  passphrase: config.certificates.passphrase
-};
 
 process.env['NODE_TLS_REJECT_UNAUTHORIZED'] = '0';
 moment().local();
@@ -119,7 +110,8 @@ function renderIndex(errors, values, req, res, next){
     // selected application
     if(values && values.SelectedApplication) {
       apps.map(function(app) {
-        if(app.name == values.SelectedApplication)
+        var appIdName = app.id + '|' + app.name;
+        if(appIdName == values.SelectedApplication)
           app.selected = true;
       });
     }
@@ -378,6 +370,8 @@ app.get('/auth', function(req, res, next){
   var resturi = req.query.proxyRestUri;
   var userId = req.query.userId;
   var appId = req.query.appId;
+
+  logger.info('Auth request ', resturi, targetId);
 
   if(!userId || !appId)
     return res.sendStatus(401);

@@ -34,6 +34,30 @@ exports.requestTicket = function(cert, passphrase, user, directory, resturi, tar
   return makeHttpsRequest(options, JSON.stringify(data));
 }
 
+exports.deleteUser = function deleteUser(cert, passphrase, user, directory, resturi) {
+  var urlObject = url.parse(resturi);
+  var xrfkey = generateXrfkey();
+
+  var options = {
+    host: urlObject.hostname,
+    port: urlObject.port,
+    path: urlObject.path + '/user/' + directory +'/' + user + '?xrfkey=' + xrfkey,
+    method: 'DELETE',
+    headers: {
+      'X-qlik-xrfkey': xrfkey,
+      'Content-Type': 'application/json'
+    },
+    pfx: cert,
+    passphrase: passphrase,
+    rejectUnauthorized: false,
+    agent: false
+  };
+
+  console.log(options);
+
+  return makeHttpsRequest(options);
+};
+
 exports.repositoryGetApps = function repositoryGetApps(config, https_options){
   var xrfkey = generateXrfkey();
   var options = {
