@@ -69,7 +69,7 @@ function renderIndex(errors, values, req, res, next){
   async.waterfall([
     function(callback){
       // get apps list
-      repositoryGetApps(config, https_options)
+      repositoryGetApps()
       .then(function(response){
         var apps = [];
         if(response.data) {
@@ -264,7 +264,7 @@ app.post('/', function(req, res, next){
   */
 app.get('/api/:stream/apps', function(req, res, next){
   var stream = req.params.stream;
-  repositoryGetApps(config, https_options)
+  repositoryGetApps()
   .then(function(response){
     var apps = [];
     if(response.data) {
@@ -306,8 +306,6 @@ function makeRequestTicketStep(userId, req) {
       // }
 
       requestTicket(
-        https_options.pfx,
-        https_options.passphrase,
         userId,
         config.authmodule.UserDirectory,
         par.proxyRestUri,

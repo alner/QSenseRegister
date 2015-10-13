@@ -1,5 +1,6 @@
 var CronJob = require('cron').CronJob;
 var moment = require('moment');
+var async = require('async');
 //var async = require('async');
 var logger = require('./logger')(module);
 var db = require('./db');
@@ -23,16 +24,13 @@ var job = new CronJob('* */1 * * * *', // run every 1 minutes
     db.queryOverdueNotDeletedRecords(formatedDate)
     .then(function(recordSet){
       recordSet.forEach(function(record){
-        // Delete Qlik Sense login
-        api.deleteUser(
-          config.https_options.pfx,
-          config.https_options.passphrase,
+        // Delete Qlik Sense user
+        DeleteSenseUser(
           record.Login,
-          config.config.authmodule.UserDirectory,
-          config.getProxyUrl()
+          config.config.authmodule.UserDirectory
         )
-        .then(function(info){
-          console.log(info);
+        .then(function(){
+          //logger.info(info);
           // Save to db
           return db.setDeletedStateFor(record.RegistrationInfoID, formatedDate);
         })
@@ -47,7 +45,7 @@ var job = new CronJob('* */1 * * * *', // run every 1 minutes
               logger.info('Access closed email sent');
               logger.info(info);
             }).catch(function(err){
-              logger.error(err);
+              logger.error('Mailer: ', err);
             });
         })
         .catch(function(err){
@@ -67,3 +65,70 @@ db.connect().then(function(){
   job.start();
   logger.info('CronJob started');
 });
+
+
+function DeleteSenseUser(name, directory){
+  return new Promise(function(resolve, reject) {
+    async.waterfall([
+      // Repository: get user id by name
+      function(callback) {
+        api.repositoryFilterUserByName(name, directory)
+        .then(function(response){
+          if(response && response.data) {
+            logger.info('repositoryFilterUserByName');
+            callback(null, response);
+          } else {
+            logger.error(response);
+            callback(response);
+          }
+        })
+        .catch(function(err){
+          callback(err);
+        });
+      },
+
+      // Repository: delete user using id
+      function(response, callback) {
+        var data = JSON.parse(response.data);
+        if(data && data.length > 0) {
+          logger.info('repositoryDeleteUser');
+          api.repositoryDeleteUser(data[0].id)
+          .then(function(response){
+            callback(null, response);
+          })
+          .catch(function(err){
+            callback(err);
+          });
+        } else {
+          logger.info('repositoryDeleteUser else');
+          if(Array.isArray(data) && data.length === 0)
+            callback(null, data);
+          else
+            callback(data);
+        }
+      },
+
+      // TODO: Proxy: delete user sessions (if any)
+      /*
+      function(response, callback) {
+        logger.info('proxyDeleteUser');
+        api.proxyDeleteUser(name, directory)
+        .then(function(response){
+          logger.info('proxyDeleteUser completed');
+          callback(null, response);
+        })
+        .catch(function(err){
+          logger.error('proxyDeleteUser error');
+          callback(err);
+        });
+      }
+      */
+
+    ],
+
+    function(err, result){
+      if(err) reject(err);
+      else resolve(result);
+    });
+  });
+}

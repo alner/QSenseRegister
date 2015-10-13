@@ -44,77 +44,61 @@ var async = require('async');
 // .catch(function(err){
 //   console.error(err);
 // });
-var name = 'ca098882-b525-456f-834c-5a0e40411385';
+var name = '7bf05d9c-7403-4b1d-bc32-64d68f5c2900';
 
-
-// api.repositoryFilterUser(
-//         config.config,
-//         config.https_options,
-//         id
-//       ).then(function(response){
-//         console.log(response);
-//         //callback(null, response, data.id);
-//       }).catch(function(err){
-//         console.error(err);
-//         //callback(err);
-//       });
-
-async.waterfall([
-
-  function(callback) {
-
-    api.repositoryFilterUserByName(
-      config.config,
-      config.https_options,
-      name
-    ).then(function(response){
-      if(response && response.data) {
-        callback(null, response);
-      } else
-        callback(response);
-    })
-  },
-
-  function(response, callback) {
-    var data = JSON.parse(response.data);
-    if(data && data.length > 0) {
-      api.repositoryDeleteUser(
-        config.config,
-        config.https_options,
-        data[0].id
-      ).then(function(response){
-        console.log(response);
-        callback(null, response, data[0].id);
-      }).catch(function(err){
-        callback(err);
-      });
-    } else {
-      callback(data);
-    }
-  },
-/*
-  function(response, id, callback) {
-    console.log(id);
-    api.repositoryDelete(
-      config.config,
-      config.https_options,
-      id
-    ).then(function(response){
-      console.log(response);
-      callback(null, response);
-    }).catch(function(err){
-      console.error(err);
-      callback(err);
-    });
-  }
-  */
-
-],
-function(err, result){
-  if(err) console.error(err);
-  console.log(result);
+api.repositoryCreateRule(name, 'c0178a21-14ed-401c-8fe3-7252f017299d') //, 'QSDEMOAPPS')
+.then(function(response){
+  console.log(response);
+})
+.catch(function(err){
+  console.error(err);
 });
 
+// async.waterfall([
+//
+//   function(callback) {
+//     api.repositoryFilterUserByName(name)
+//     .then(function(response){
+//       if(response && response.data) {
+//         callback(null, response);
+//       } else
+//         callback(response);
+//     })
+//     .catch(function(err){
+//       callback(err);
+//     });
+//   },
+//
+//   function(response, callback) {
+//     var data = JSON.parse(response.data);
+//     if(data && data.length > 0) {
+//       api.repositoryDeleteUser(data[0].id)
+//       .then(function(response){
+//         callback(null, response);
+//       }).catch(function(err){
+//         callback(err);
+//       });
+//     } else {
+//       callback(data);
+//     }
+//   },
+//
+//   function(response, callback) {
+//     api.proxyDeleteUser(name)
+//     .then(function(response){
+//       callback(null, response);
+//     })
+//     .catch(function(err){
+//       callback(err);
+//     });
+//   }
+//
+// ],
+//
+// function(err, result){
+//   if(err) console.error(err);
+//   console.log(result);
+// });
 
 
 // api.repositorySelectUser(
