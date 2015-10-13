@@ -71,12 +71,14 @@ function renderIndex(errors, values, req, res, next){
       // get apps list
       repositoryGetApps(config, https_options)
       .then(function(response){
-        var data = JSON.parse(response.data);
         var apps = [];
-        if(data)
-          apps = data.filter(function(appinfo) {
-            return appinfo.published;
-          });
+        if(response.data) {
+          var data = JSON.parse(response.data);
+          if(data)
+            apps = data.filter(function(appinfo) {
+              return appinfo.published;
+            });
+        }
 
         callback(null, apps);
       })

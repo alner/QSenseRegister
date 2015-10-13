@@ -24,22 +24,120 @@
 
 var config = require('./config');
 var api = require('./api');
+var async = require('async');
 
-var record = {
-  Login: 'ad9bbf0f-497b-411d-82f8-95471d6dc57a'
-}
-var proxy = config.getProxyUrl();
-console.log(proxy);
-api.deleteUser(
-  config.https_options.pfx,
-  config.https_options.passphrase,
-  record.Login,
-  config.config.authmodule.UserDirectory,
-  proxy
-)
-.then(function(info){
-  console.log(info);
-})
-.catch(function(err){
-  console.error(err);
+// var record = {
+//   Login: 'ad9bbf0f-497b-411d-82f8-95471d6dc57a'
+// }
+// var proxy = config.getProxyUrl();
+// console.log(proxy);
+// api.deleteUser(
+//   config.https_options.pfx,
+//   config.https_options.passphrase,
+//   record.Login,
+//   config.config.authmodule.UserDirectory,
+//   proxy
+// )
+// .then(function(info){
+//   console.log(info);
+// })
+// .catch(function(err){
+//   console.error(err);
+// });
+var name = 'ca098882-b525-456f-834c-5a0e40411385';
+
+
+// api.repositoryFilterUser(
+//         config.config,
+//         config.https_options,
+//         id
+//       ).then(function(response){
+//         console.log(response);
+//         //callback(null, response, data.id);
+//       }).catch(function(err){
+//         console.error(err);
+//         //callback(err);
+//       });
+
+async.waterfall([
+
+  function(callback) {
+
+    api.repositoryFilterUserByName(
+      config.config,
+      config.https_options,
+      name
+    ).then(function(response){
+      if(response && response.data) {
+        callback(null, response);
+      } else
+        callback(response);
+    })
+  },
+
+  function(response, callback) {
+    var data = JSON.parse(response.data);
+    if(data && data.length > 0) {
+      api.repositoryDeleteUser(
+        config.config,
+        config.https_options,
+        data[0].id
+      ).then(function(response){
+        console.log(response);
+        callback(null, response, data[0].id);
+      }).catch(function(err){
+        callback(err);
+      });
+    } else {
+      callback(data);
+    }
+  },
+/*
+  function(response, id, callback) {
+    console.log(id);
+    api.repositoryDelete(
+      config.config,
+      config.https_options,
+      id
+    ).then(function(response){
+      console.log(response);
+      callback(null, response);
+    }).catch(function(err){
+      console.error(err);
+      callback(err);
+    });
+  }
+  */
+
+],
+function(err, result){
+  if(err) console.error(err);
+  console.log(result);
 });
+
+
+
+// api.repositorySelectUser(
+//   config.config,
+//   config.https_options,
+//   "0f1f61f0-5c86-4023-81ed-d684732b12b9"
+// )
+// .then(function(response){
+//   if(response && response.data) {
+//     console.log(response.data);
+//     var data = JSON.parse(response.data);
+//     if(data.id)
+//     api.repositoryDeleteUser(
+//       config.config,
+//       config.https_options,
+//       data.id
+//     ).then(function(response){
+//       console.log(response)
+//     }).catch(function(err){
+//       console.error(err);
+//     });
+//   }
+// })
+// .catch(function(err){
+//   console.error(err);
+// });
