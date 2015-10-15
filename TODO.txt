@@ -8,7 +8,9 @@ BODY:
 
 {"name":"TestRuleAppsRead",
 "category":"Security",
-"rule":"((user.name=\"demo1\"))",
+"rule":"
+  (resource.resourcetype = "App" and resource.stream.HasPrivilege("read")) or ((resource.resourcetype = "App.Object" and resource.published ="true") and resource.app.stream.HasPrivilege("read")) and (user.name="demo1")",
+
 "type":"Custom",
 "privileges":["create","read","update"],
 "resourceFilter":"app_dd586e6e-c8e8-40d0-9a2b-724b8c3ff147, App.Object_*",

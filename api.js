@@ -99,6 +99,30 @@ exports.repositoryFilterUserByName = function repositoryFilterUserByName(user, d
   return makeHttpsRequest(options);
 };
 
+
+exports.repositoryFilterSystemRuleByName = function repositoryFilterSystemRuleByName(rule){
+  var xrfkey = generateXrfkey();
+  var filter = encodeURIComponent("Name eq '"+ rule + "'");
+
+  var options = {
+    host: config.repository.host,
+    port: config.repository.port,
+    path: "/qrs/systemrule/full?xrfkey=" + xrfkey +"&filter=" + filter,
+    method: 'GET', //'POST',
+    headers: {
+      'X-Qlik-Xrfkey': xrfkey,
+      'X-Qlik-User': config.repository['X-Qlik-User'],
+      'Content-Type': 'application/json'
+    },
+    key: https_options.pem.key,
+    cert: https_options.pem.cert,
+    ca: https_options.pem.ca
+  };
+
+  return makeHttpsRequest(options);
+};
+
+
 exports.repositoryDeleteUser = function repositoryDeleteUser(id) {
   var xrfkey = generateXrfkey();
   var options = {
@@ -164,4 +188,24 @@ exports.repositoryCreateRule = function repositoryCreateRule(user, appid) {
   };
 
   return makeHttpsRequest(options, JSON.stringify(data));
+}
+
+exports.repositoryDeleteSystemRule = function repositoryDeleteSystemRule(id) {
+  var xrfkey = generateXrfkey();
+  var options = {
+    host: config.repository.host,
+    port: config.repository.port,
+    path: '/qrs/systemrule/' + id + '?xrfkey=' + xrfkey,
+    method: 'DELETE',
+    headers: {
+      'X-Qlik-Xrfkey': xrfkey,
+      'X-Qlik-User': config.repository['X-Qlik-User'],
+      'Content-Type': 'application/json'
+    },
+    key: https_options.pem.key,
+    cert: https_options.pem.cert,
+    ca: https_options.pem.ca
+  };
+
+  return makeHttpsRequest(options);
 }

@@ -44,9 +44,9 @@ var async = require('async');
 // .catch(function(err){
 //   console.error(err);
 // });
-var name = '7bf05d9c-7403-4b1d-bc32-64d68f5c2900';
+var name = '11a059eb-dc77-4504-8743-649ffce54122';
 
-api.repositoryCreateRule(name, 'c0178a21-14ed-401c-8fe3-7252f017299d') //, 'QSDEMOAPPS')
+api.repositoryFilterSystemRuleByName(name)
 .then(function(response){
   console.log(response);
 })

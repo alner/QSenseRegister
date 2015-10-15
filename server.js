@@ -21,6 +21,7 @@ var db = require('./db');
 var makeHttpsRequest = require('./utils').makeHttpsRequest;
 var requestTicket = require('./api').requestTicket;
 var repositoryGetApps = require('./api').repositoryGetApps;
+var repositoryCreateRule = require('./api').repositoryCreateRule;
 var config = require('./config').config;
 var https_options = require('./config').https_options;
 var translations = require('./views/translations');
@@ -200,6 +201,21 @@ app.post('/', function(req, res, next){
                   }).catch(function(err){
                       callback(err, values);
                   });
+              },
+
+              // Create Security Rule
+              function(values, callback) {
+                var appId = values.SelectedApplication.split('|')[0];
+                //var appTitle = values.SelectedApplication.split('|')[1];
+                var login = values.Login;
+                repositoryCreateRule(login, appId)
+                .then(function(){
+                  logger.info('System rule created');
+                  callback(null, values);
+                })
+                .catch(function(err){
+                  callback(err);
+                });
               },
 
               // Qlik Sense document redirect, through auth module

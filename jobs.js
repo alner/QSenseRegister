@@ -70,7 +70,7 @@ db.connect().then(function(){
 function DeleteSenseUser(name, directory){
   return new Promise(function(resolve, reject) {
     async.waterfall([
-      // Repository: get user id by name
+      // Repository: Step 1. get user id by name
       function(callback) {
         api.repositoryFilterUserByName(name, directory)
         .then(function(response){
@@ -87,7 +87,7 @@ function DeleteSenseUser(name, directory){
         });
       },
 
-      // Repository: delete user using id
+      // Repository: Step 2. delete user using id
       function(response, callback) {
         var data = JSON.parse(response.data);
         if(data && data.length > 0) {
@@ -101,6 +101,44 @@ function DeleteSenseUser(name, directory){
           });
         } else {
           logger.info('repositoryDeleteUser else');
+          if(Array.isArray(data) && data.length === 0)
+            callback(null, data);
+          else
+            callback(data);
+        }
+      },
+
+      // Repository: Step 1. filter system rule by name (user name equal to system rule name)
+      function(response, callback) {
+        api.repositoryFilterSystemRuleByName(name)
+        .then(function(response){
+          if(response && response.data) {
+            logger.info('repositoryFilterSystemRuleByName');
+            callback(null, response);
+          } else {
+            logger.error(response);
+            callback(response);
+          }
+        })
+        .catch(function(err){
+          callback(err);
+        });
+      },
+
+      // Repository: Step 2. delete system rule by id
+      function(response, callback) {
+        var data = JSON.parse(response.data);
+        if(data && data.length > 0) {
+          logger.info('repositoryDeleteSystemRule');
+          api.repositoryDeleteSystemRule(data[0].id)
+          .then(function(response){
+            callback(null, response);
+          })
+          .catch(function(err){
+            callback(err);
+          });
+        } else {
+          logger.info('repositoryDeleteSystemRule else');
           if(Array.isArray(data) && data.length === 0)
             callback(null, data);
           else
