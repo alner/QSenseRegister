@@ -5,7 +5,7 @@ var async = require('async');
 var logger = require('./logger')(module);
 var db = require('./db');
 var mailer = require('./mailer');
-var config = require('./config');
+var config = require('./config').config;
 var api = require('./api');
 
 moment().local();
@@ -16,18 +16,18 @@ moment().local();
 // Day of Month: 1-31
 // Months: 0-11
 // Day of Week: 0-6
-var job = new CronJob('* */1 * * * *', // run every 1 minutes
+var closeAccessJob = new CronJob('* */1 * * * *', // run every 1 minutes
   function onJob(){
     var now = moment();
     var formatedDate = now.format(db.DateTimeFormat);
     // Update DB, send notify email
-    db.queryOverdueNotDeletedRecords(formatedDate)
+    db.queryOverdueRecords(formatedDate)
     .then(function(recordSet){
       recordSet.forEach(function(record){
         // Delete Qlik Sense user
         DeleteSenseUser(
           record.Login,
-          config.config.authmodule.UserDirectory
+          config.authmodule.UserDirectory
         )
         .then(function(){
           //logger.info(info);
@@ -38,7 +38,7 @@ var job = new CronJob('* */1 * * * *', // run every 1 minutes
             // Send Email notification
             logger.info('Access closed for ' + record.RegistrationInfoID);
             mailer.sendMail(record.Email, // email
-              config.config.mail.AccessClosedSubject[record.Lang], // email subject
+              config.mail.AccessClosedSubject[record.Lang], // email subject
               record, // context/data
               "accessClosed." + record.Lang // email template
             ).then(function(info){
@@ -61,8 +61,80 @@ var job = new CronJob('* */1 * * * *', // run every 1 minutes
 );
 
 
+var checkLicensesJob = new CronJob('* */5 * * * *', // run every 5 minutes
+  function onJob(){
+    //var now = moment();
+    //var formatedDate = now.format(db.DateTimeFormat);
+    // Update DB, send notify email
+
+    async.waterfall([
+
+      // 1. check licenses availability
+      function checkLicensesAvailability(callback) {
+        api.repositoryLicenses(config.authmodule.LoginAccessRule)
+        .then(function(response){
+          var data = JSON.parse(response.data);
+          var remainingAccessTypes = apiUtils.getColumnValue(data, 'remainingAccessTypes');
+          callback(null, remainingAccessTypes);
+        })
+        .catch(function(err){
+          callback(err);
+        });
+      },
+
+      // 2. check NoLicense records only
+      function checkNoLicenseRecords(remainingAccessTypes, callback) {
+        if(!remainingAccessTypes)
+          return callback(null, remainingAccessTypes);
+
+        db.queryRecordsByStates([db.RegistrationState.NoLicense])
+        .then(function(recordSet){
+          recordSet.forEach(function(record){
+              if(remainingAccessTypes > 0) {
+                // Save to db
+                db.setGrantedStateFor(record.RegistrationInfoID)
+                .then(function(){
+                    // Send Email notification
+                    logger.info('Access granted for ' + record.RegistrationInfoID);
+                    mailer.sendMail(record.Email, // email
+                      config.mail.LicenseAvailabilitySubject[record.Lang], // email subject
+                      record, // context/data
+                      "availableLicenseMessage." + record.Lang // email template
+                    ).then(function(info){
+                      logger.info('Access granted email sent');
+                      logger.info(info);
+                    }).catch(function(err){
+                      logger.error('Mailer: ', err);
+                    });
+                })
+                .catch(function(err){
+                  logger.error(err);
+                });
+                remainingAccessTypes -= 1;
+              }
+          });
+          callback(null);
+        })
+        .catch(function(err){
+          callback(err);
+        });
+      }
+    ],
+
+    function(err, result){
+      if(err) logger.error(err);
+      //else logger.info(result);
+    });
+  },
+  function onJobComplete(){
+    //logger.info('Job completed!');
+  },
+  false // start the job right now
+);
+
 db.connect().then(function(){
-  job.start();
+  closeAccessJob.start();
+  checkLicensesJob.start();
   logger.info('CronJob started');
 });
 

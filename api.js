@@ -209,3 +209,58 @@ exports.repositoryDeleteSystemRule = function repositoryDeleteSystemRule(id) {
 
   return makeHttpsRequest(options);
 }
+
+
+exports.repositoryLicenses = function repositoryLicenses(rule){
+  var xrfkey = generateXrfkey();
+  var filter = encodeURIComponent("name so '"+ rule + "'");
+
+  var options = {
+    host: config.repository.host,
+    port: config.repository.port,
+    path: "/qrs/License/LoginAccessType/table?filter=(" + filter + ")&orderAscending=true&skip=0&sortColumn=name&take=200&xrfkey=" + xrfkey,
+    method: 'POST',
+    headers: {
+      'X-Qlik-Xrfkey': xrfkey,
+      'X-Qlik-User': config.repository['X-Qlik-User'],
+      'Content-Type': 'application/json'
+    },
+    key: https_options.pem.key,
+    cert: https_options.pem.cert,
+    ca: https_options.pem.ca
+  };
+
+  var data = {
+    entity: "License.LoginAccessType",
+    columns:[
+        {name: "id", columnType:"Property", definition:"id"},
+        {name: "privileges", columnType:"Privileges", definition:"privileges"},
+        {name: "name", columnType: "Property", definition: "name"},
+        {name: "assignedTokens", columnType: "Property", definition: "assignedTokens"},
+        {name: "usedAccessTypes", columnType: "Property", definition: "usedAccessTypes"},
+        {name: "remainingAccessTypes", columnType: "Property", definition: "remainingAccessTypes"}
+    ]
+  };
+
+  return makeHttpsRequest(options, JSON.stringify(data));
+};
+
+
+// Additional utils functions
+exports.utils = {
+  getColumnValue: function getColumnValue(data, columnName, rowIndex) {
+      // data should have columnNames array
+      var columnIndex = -1;
+      var rowIndex = rowIndex || 0;
+
+      if(!data.columnNames
+      || (columnIndex = data.columnNames.indexOf(columnName)) === -1)
+        return null;
+
+      var rowdata = data.rows[rowIndex];
+      if(rowdata && rowdata.length > 0)
+        return data.rows[rowIndex][columnIndex];
+      else
+        return null;
+  }
+};

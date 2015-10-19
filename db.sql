@@ -17,6 +17,7 @@ CREATE TABLE [dbo].[RegistrationInfoes](
   [IndustryID] [nvarchar](150) NULL,
   [SelectedApplication] [nvarchar](250) NOT NULL,
   [Registered] [datetime] NOT NULL,
+--[Till] [datetime] NOT NULL,
   [Granted] [datetime] NULL,
   [Accessed] [datetime] NULL,
   [Deleted] [datetime] NULL,

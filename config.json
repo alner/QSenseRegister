@@ -4,7 +4,8 @@
     "port": 8888,
     "external_url": "https://localhost:8888",
     "UserDirectory": "DEMOAPPS",
-    "AccessDays": 2
+    "AccessDays": 2,
+    "LoginAccessRule": "Demo"
   },
   "recaptcha": {
     "SITE_KEY": "6LesAA4TAAAAAD1rn9Jfy6ENT_1pa2IK6eWy_mVJ",
@@ -50,6 +51,9 @@
     },
     "AccessClosedSubject": {
       "ru": "Qlik Sense: уведомление о завершении доступа"
+    },
+    "LicenseAvailabilitySubject": {
+      "ru": "Qlik Sense: уведомление о наличии лицензии"
     }
   }
 }

@@ -14,6 +14,13 @@ var RegistrationState = {
   NotifyRegistration: 5
 };
 
+var defaultOverdueStates = [
+  RegistrationState.Registered,
+  RegistrationState.Granted,
+  RegistrationState.Accessed,
+  RegistrationState.NotifyRegistration
+].toString();
+
 exports.RegistrationState = RegistrationState;
 
 exports.DateTimeFormat = 'DD-MM-YYYY HH:mm:ss';
@@ -71,11 +78,20 @@ exports.queryByUserAndApp = function(userid, appId, nowDate) {
   return request.query(SQL);
 };
 
-exports.queryOverdueNotDeletedRecords = function(nowDate){
+exports.queryOverdueRecords = function(nowDate, states){
   var SQL = "set dateformat dmy " +
-  "select * from [dbo].[RegistrationInfoes] where Deleted is null and Granted < @now";
+  "select * from [dbo].[RegistrationInfoes] where State in (@state) and Granted < @now"; // Deleted is null and
   var request = new sql.Request(connection);
   request.input('now', sql.NVarChar, nowDate);
+  request.input('state', sql.NVarChar, states || defaultOverdueStates);
+  return request.query(SQL);
+};
+
+exports.queryRecordsByStates = function(states){
+  var SQL = "set dateformat dmy " +
+  "select * from [dbo].[RegistrationInfoes] where State in (@state)";
+  var request = new sql.Request(connection);
+  request.input('state', sql.NVarChar, states || defaultOverdueStates);
   return request.query(SQL);
 };
 
@@ -93,6 +109,9 @@ exports.setDeletedStateFor = function(id, deletedDate) {
 
 exports.insert = function insert(data, cb) {
   if(!ps) return null;
-  data.State = RegistrationState.Registered;
+
+  if(!data.State)
+    data.State = RegistrationState.Registered;
+
   return ps.execute(data, cb);
 };

@@ -22,6 +22,8 @@ var makeHttpsRequest = require('./utils').makeHttpsRequest;
 var requestTicket = require('./api').requestTicket;
 var repositoryGetApps = require('./api').repositoryGetApps;
 var repositoryCreateRule = require('./api').repositoryCreateRule;
+var repositoryLicenses = require('./api').repositoryLicenses;
+var apiUtils = require('./api').utils;
 var config = require('./config').config;
 var https_options = require('./config').https_options;
 var translations = require('./views/translations');
@@ -192,8 +194,31 @@ app.post('/', function(req, res, next){
 
             async.waterfall([
 
+              // Check licenses availability
+              function(callback) {
+                repositoryLicenses(config.authmodule.LoginAccessRule)
+                .then(function(response){
+                  var data = JSON.parse(response.data);
+                  var remainingAccessTypes = apiUtils.getColumnValue(data, 'remainingAccessTypes');
+                  if(remainingAccessTypes && remainingAccessTypes > 0) {
+                    // licenses are available
+                    values.isLicensesAvailable = true;
+                    callback(null, values);
+                  } else {
+                    // no licenses
+                    values.isLicensesAvailable = false;
+                    values.State = db.RegistrationState.NoLicense;
+                    callback(null, values);
+                  }
+                })
+                .catch(function(err){
+                  callback(err);
+                  logger.error(err);
+                });
+              },
+
               // Save to database
-              function(callback){
+              function(values, callback){
                   db.insert(values).then(function(){
                       logger.info('Data saved');
                       logger.info(values);
@@ -241,10 +266,18 @@ app.post('/', function(req, res, next){
 
               // Send email
               function(values, callback) {
+                var emailTemplate;
+
+                if(values.isLicensesAvailable) {
+                  emailTemplate = "message." + values.Lang;
+                } else {
+                  emailTemplate = "unavailable." + values.Lang;
+                }
+
                 mailer.sendMail(values.Email, // email
                   config.mail.subject[values.Lang], // email subject
                   values, // context/data
-                  "message." + values.Lang // email template
+                  emailTemplate // email template
                 ).then(function(info){
                   callback(null, values);
                   logger.info(info);

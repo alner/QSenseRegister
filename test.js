@@ -44,11 +44,17 @@ var async = require('async');
 // .catch(function(err){
 //   console.error(err);
 // });
-var name = '11a059eb-dc77-4504-8743-649ffce54122';
+var name = 'Demo';
 
-api.repositoryFilterSystemRuleByName(name)
+api.repositoryLicenses(name)
 .then(function(response){
-  console.log(response);
+  console.log(response.data);
+  if(response && response.data) {
+    var data = JSON.parse(response.data);
+    console.log(data);
+    console.log(api.utils.getColumnValue(data, 'usedAccessTypes'));
+    console.log(api.utils.getColumnValue(data, 'remainingAccessTypes'));
+  }
 })
 .catch(function(err){
   console.error(err);
