@@ -22,8 +22,11 @@
 // });
 
 
-var config = require('./config');
+var config = require('./config').config;
 var api = require('./api');
+var apiUtils = api.utils;
+var db = require('./db');
+var mailer = require('./mailer');
 var async = require('async');
 
 // var record = {
@@ -44,21 +47,53 @@ var async = require('async');
 // .catch(function(err){
 //   console.error(err);
 // });
-var name = 'Demo';
+//var name = 'Demo';
 
-api.repositoryLicenses(name)
-.then(function(response){
-  console.log(response.data);
-  if(response && response.data) {
-    var data = JSON.parse(response.data);
-    console.log(data);
-    console.log(api.utils.getColumnValue(data, 'usedAccessTypes'));
-    console.log(api.utils.getColumnValue(data, 'remainingAccessTypes'));
-  }
-})
-.catch(function(err){
-  console.error(err);
+// api.repositoryLicenses(config.authmodule.LoginAccessRule)
+// .then(function(response){
+//   var data = JSON.parse(response.data);
+//   var remainingAccessTypes = apiUtils.getColumnValue(data, 'remainingAccessTypes');
+//   console.log(remainingAccessTypes);
+//   //callback(null, remainingAccessTypes);
+// })
+// .catch(function(err){
+//   console.log(err);
+//   //callback(err);
+// });
+
+
+// db.connect()
+// .then(function(){
+//   return db.setGrantedStateFor(1088)
+//   //return db.queryRecordsByStates([db.RegistrationState.NoLicense].toString());
+//   //return db.queryOverdueRecords();
+// })
+// .then(function(recordSet){
+//   console.log(recordSet);
+// })
+// .then(function(){
+//   return db.close();
+// })
+// .catch(function(err){
+//   console.error(err);
+// });
+
+mailer.sendMail('nerush@rbcgrp.com', // email
+  config.mail.LicenseAvailabilitySubject['ru'], // email subject
+  {
+    Name: 'Alex',
+    Surname: 'Nerush',
+    applicationTitle: 'Google Search',
+    access_url: 'http://www.google.com'
+  },
+  "availableLicenseMessage." + "ru" // email template
+).then(function(info){
+  logger.info('Access granted email sent');
+  logger.info(info);
+}).catch(function(err){
+  logger.error('Mailer: ', err);
 });
+
 
 // async.waterfall([
 //

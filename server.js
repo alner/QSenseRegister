@@ -19,6 +19,8 @@ var querystring = require('querystring');
 var logger = require('./logger')(module);
 var db = require('./db');
 var makeHttpsRequest = require('./utils').makeHttpsRequest;
+var makeAppUrl = require('./utils').makeAppUrl;
+var makeAuthAppUrl = require('./utils').makeAuthAppUrl;
 var requestTicket = require('./api').requestTicket;
 var repositoryGetApps = require('./api').repositoryGetApps;
 var repositoryCreateRule = require('./api').repositoryCreateRule;
@@ -141,23 +143,24 @@ app.get('/', recaptcha.middleware.render, function(req, res, next){
 
 app.post('/', function(req, res, next){
   var now = moment();
-  var values = {};
-  // industry
-  values.IndustryID = req.body.industry;
-  // application
-  values.SelectedApplication = req.body.application;
-  values.Name = req.body.name;
-  values.Surname = req.body.surname;
-  values.Email = req.body.email;
-  values.Phone = req.body.phone;
-  values.Company = req.body.company;
-  values.Position = req.body.position;
-  values.Login = uuid.v4().toString();
-  values.Lang = 'ru';
-  // registeredDate
-  values.Registered = now.format(db.DateTimeFormat);
-  // grantedDate
-  values.Granted = now.add({days: config.authmodule.AccessDays}).format(db.DateTimeFormat);
+  var values = db.makeRegistrationRecord(req.body);
+  // var values = {};
+  // // industry
+  // values.IndustryID = req.body.industry;
+  // // application
+  // values.SelectedApplication = req.body.application;
+  // values.Name = req.body.name;
+  // values.Surname = req.body.surname;
+  // values.Email = req.body.email;
+  // values.Phone = req.body.phone;
+  // values.Company = req.body.company;
+  // values.Position = req.body.position;
+  // values.Login = uuid.v4().toString();
+  // values.Lang = 'ru';
+  // // registeredDate
+  // values.Registered = now.format(db.DateTimeFormat);
+  // // grantedDate
+  // values.Granted = now.add({days: config.authmodule.AccessDays}).format(db.DateTimeFormat);
 
   recaptcha.verify(req, function(error) {
         if(error) {
@@ -230,8 +233,7 @@ app.post('/', function(req, res, next){
 
               // Create Security Rule
               function(values, callback) {
-                var appId = values.SelectedApplication.split('|')[0];
-                //var appTitle = values.SelectedApplication.split('|')[1];
+                var appId = values.getAppId(); //values.SelectedApplication.split('|')[0];
                 var login = values.Login;
                 repositoryCreateRule(login, appId)
                 .then(function(){
@@ -246,14 +248,14 @@ app.post('/', function(req, res, next){
               // Qlik Sense document redirect, through auth module
               function(values, callback){
                 // Create qlik sense user login
-                var appId = values.SelectedApplication.split('|')[0];
-                var appTitle = values.SelectedApplication.split('|')[1];
-                var proxyRestUri = makeAppUrl(appId);
-                var authQuery = '/auth?userId=' + values.Login + '&appId=' + appId;
+                var appId = values.getAppId(); //values.SelectedApplication.split('|')[0];
+                var appTitle = values.getAppTitle(); //values.SelectedApplication.split('|')[1];
+                //var proxyRestUri = makeAppUrl(appId);
+                //var authQuery = '/auth?userId=' + values.Login + '&appId=' + appId;
                 //'&proxyRestUri=' + proxyRestUri;
 
                 // Auth module url
-                var req_url = config.authmodule.external_url + authQuery;
+                var req_url = makeAuthAppUrl(values.Login, appId); //config.authmodule.external_url + authQuery;
                 //'https://' + config.authmodule.host + ':' + config.authmodule.port
 
                 // used in email
@@ -403,16 +405,6 @@ function makeCheckDbRequest(userId, appId) {
   }
 }
 
-function makeAppUrl(appId) {
-  var url = 'http://' + config.hub.host;
-
-  if(config.hub.port)
-    url += (':' + config.hub.port);
-
-  url += (config.hub.url + '/sense/app/' + appId);
-
-  return url;
-}
 
 app.get('/auth', function(req, res, next){
   var targetId = req.query.targetId;

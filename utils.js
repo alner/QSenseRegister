@@ -1,6 +1,7 @@
 var https = require('https'),
   Promise = require('promise'),
-  crypto = require('crypto');
+  crypto = require('crypto'),
+  config = require('./config').config;
 
 function generateXrfkey(size, chars) {
   size = size || 16;
@@ -45,5 +46,23 @@ function makeHttpsRequest(settings, body, dataCallback){
   });
 }
 
+function makeAppUrl(appId) {
+  var url = 'http://' + config.hub.host;
+
+  if(config.hub.port)
+    url += (':' + config.hub.port);
+
+  url += (config.hub.url + '/sense/app/' + appId);
+
+  return url;
+}
+
+function makeAuthAppUrl(login, appid) {
+  // Auth module url
+  return config.authmodule.external_url + '/auth?userId=' + login + '&appId=' + appid;
+}
+
 exports.makeHttpsRequest = makeHttpsRequest;
 exports.generateXrfkey = generateXrfkey;
+exports.makeAppUrl = makeAppUrl;
+exports.makeAuthAppUrl = makeAuthAppUrl;

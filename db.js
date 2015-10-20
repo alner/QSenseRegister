@@ -1,8 +1,10 @@
 var sql = require('mssql');
+var moment = require('moment');
+var uuid = require('node-uuid');
 var logger = require('./logger')(module);
-var config = require('./config.json').db;
+var config = require('./config.js').config;
 
-var connection = new sql.Connection(config);
+var connection = new sql.Connection(config.db);
 var ps;
 
 var RegistrationState = {
@@ -23,7 +25,42 @@ var defaultOverdueStates = [
 
 exports.RegistrationState = RegistrationState;
 
-exports.DateTimeFormat = 'DD-MM-YYYY HH:mm:ss';
+var DateTimeFormat = exports.DateTimeFormat = 'DD-MM-YYYY HH:mm:ss';
+
+function makeRegistrationRecord(data){
+  var now = moment();
+  return addRegistrationMethods({
+    IndustryID: data.industry,
+    SelectedApplication: data.application,
+    Name: data.name,
+    Surname: data.surname,
+    Email: data.email,
+    Phone: data.phone,
+    Company: data.company,
+    Position: data.position,
+    Login: uuid.v4().toString(),
+    Lang: 'ru',
+    // registeredDate
+    Registered: now.format(DateTimeFormat),
+    // grantedDate
+    Granted: now.add({days: config.authmodule.AccessDays}).format(DateTimeFormat),
+  });
+};
+
+function addRegistrationMethods(record) {
+  record.getAppId = function(){
+    return this.SelectedApplication.split('|')[0];
+  };
+
+  record.getAppTitle = function(){
+    return this.SelectedApplication.split('|')[1];
+  };
+
+  return record;
+}
+
+exports.makeRegistrationRecord = makeRegistrationRecord;
+exports.addRegistrationMethods = addRegistrationMethods;
 
 exports.connect = function connect(cb) {
   return connection.connect(cb);
@@ -79,19 +116,22 @@ exports.queryByUserAndApp = function(userid, appId, nowDate) {
 };
 
 exports.queryOverdueRecords = function(nowDate, states){
+  var nowDate = nowDate || moment().format(DateTimeFormat);
+  var states = states || defaultOverdueStates;
   var SQL = "set dateformat dmy " +
-  "select * from [dbo].[RegistrationInfoes] where State in (@state) and Granted < @now"; // Deleted is null and
+  "select * from [dbo].[RegistrationInfoes] where State in (" + states + ") and Granted < @now";
   var request = new sql.Request(connection);
   request.input('now', sql.NVarChar, nowDate);
-  request.input('state', sql.NVarChar, states || defaultOverdueStates);
+  //request.input('state', sql.NVarChar, states || defaultOverdueStates);
   return request.query(SQL);
 };
 
 exports.queryRecordsByStates = function(states){
+  var states = states || defaultOverdueStates;
   var SQL = "set dateformat dmy " +
-  "select * from [dbo].[RegistrationInfoes] where State in (@state)";
+  "select * from [dbo].[RegistrationInfoes] where State in (" + states + ")";
   var request = new sql.Request(connection);
-  request.input('state', sql.NVarChar, states || defaultOverdueStates);
+  //request.input('state', sql.NVarChar, states || defaultOverdueStates);
   return request.query(SQL);
 };
 
@@ -103,6 +143,21 @@ exports.setDeletedStateFor = function(id, deletedDate) {
   var request = new sql.Request(connection);
   request.input('deletedDate', sql.NVarChar, deletedDate);
   request.input('state', sql.TinyInt, RegistrationState.Deleted);
+  request.input('id', sql.Int, id);
+  return request.query(SQL);
+};
+
+exports.setGrantedStateFor = function(id) {
+  var now = moment();
+  var grantedDate = now.add({days: config.authmodule.AccessDays}).format(DateTimeFormat);
+  var SQL = "set dateformat dmy " +
+    " update [dbo].[RegistrationInfoes] " +
+    " set Granted = @grantedDate, State = @state " +
+    " where RegistrationInfoID = @id ";
+
+  var request = new sql.Request(connection);
+  request.input('grantedDate', sql.NVarChar, grantedDate);
+  request.input('state', sql.TinyInt, RegistrationState.Granted);
   request.input('id', sql.Int, id);
   return request.query(SQL);
 };
