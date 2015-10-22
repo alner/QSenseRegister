@@ -8,6 +8,10 @@ body {
   background: white;
 }
 
+.jumbotron {
+  background: white;
+}
+
 .btn-success {
   background: #56A00E;
 }

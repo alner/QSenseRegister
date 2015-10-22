@@ -9,6 +9,7 @@ var recaptcha = require('express-recaptcha');
 var validator = require('express-validator');
 var uuid = require('node-uuid');
 var https = require('https');
+var http = require('http');
 var fs = require('fs');
 var path = require('path');
 var async = require('async');
@@ -141,6 +142,10 @@ app.get('/', recaptcha.middleware.render, function(req, res, next){
   renderIndex(null, {}, req, res, next);
 });
 
+app.get('/registered', function(req, res, next){
+  res.render('registered', {translations: translations.ru});
+})
+
 app.post('/', function(req, res, next){
   var now = moment();
   var values = db.makeRegistrationRecord(req.body);
@@ -254,15 +259,11 @@ app.post('/', function(req, res, next){
                 //var authQuery = '/auth?userId=' + values.Login + '&appId=' + appId;
                 //'&proxyRestUri=' + proxyRestUri;
 
-                // Auth module url
-                var req_url = makeAuthAppUrl(values.Login, appId); //config.authmodule.external_url + authQuery;
-                //'https://' + config.authmodule.host + ':' + config.authmodule.port
-
                 // used in email
-                values.access_url = req_url;
+                values.access_url =  makeAuthAppUrl(values.Login, appId, false);
                 values.applicationTitle = appTitle;
 
-                res.redirect(req_url);
+                res.redirect(makeAuthAppUrl(values.Login, appId, true));
                 callback(null, values);
               },
 
@@ -410,9 +411,11 @@ app.get('/auth', function(req, res, next){
   var targetId = req.query.targetId;
   var resturi = req.query.proxyRestUri;
   var userId = req.query.userId;
+  var registration = req.query.registration; // during registration process only
   var appId = req.query.appId;
 
-  logger.info('Auth request ', resturi, targetId);
+  if(resturi || targetId)
+    logger.info('Auth request ', resturi, targetId);
 
   if(!userId || !appId)
     return res.sendStatus(401);
@@ -452,14 +455,20 @@ app.get('/auth', function(req, res, next){
 
       if(!data.Ticket || !data.TargetUri) res.sendStatus(401);
 
-      var redirectURI;
-      if(data.TargetUri.indexOf("?") > 0) {
-        redirectURI = data.TargetUri + '&qlikTicket=' + data.Ticket;
+      // Hub Redirection or Registered page display
+      if(registration) {
+        //res.render('registered', {translations: translations.ru});
+        res.redirect('/registered');
       } else {
-        redirectURI = data.TargetUri + '?qlikTicket=' + data.Ticket;
+        var redirectURI;
+        if(data.TargetUri.indexOf("?") > 0) {
+          redirectURI = data.TargetUri + '&qlikTicket=' + data.Ticket;
+        } else {
+          redirectURI = data.TargetUri + '?qlikTicket=' + data.Ticket;
+        }
+        res.redirect(redirectURI);
+        logger.info("Redirected ", redirectURI);
       }
-      res.redirect(redirectURI);
-      logger.info("Redirected ", redirectURI);
     }
   );
 

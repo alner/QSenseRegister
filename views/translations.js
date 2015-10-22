@@ -10,7 +10,9 @@ exports.ru = {
   phone: 'Телефон',
   company: 'Компания',
   position: 'Должность',
-  submit: 'Получить доступ'
+  submit: 'Получить доступ',
+  thanksForRegistration: 'Спасибо за регистрацию!',
+  registeredText: 'Ссылка для доступа к приложению выслана на указанный Вами почтовый ящик.'
 };
 
 exports.ru.errors = {

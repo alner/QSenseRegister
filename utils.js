@@ -57,9 +57,13 @@ function makeAppUrl(appId) {
   return url;
 }
 
-function makeAuthAppUrl(login, appid) {
+function makeAuthAppUrl(login, appid, isRegistration) {
   // Auth module url
-  return config.authmodule.external_url + '/auth?userId=' + login + '&appId=' + appid;
+  var url = config.authmodule.external_url + '/auth?userId=' + login + '&appId=' + appid;
+  if(isRegistration) {
+    url += '&registration=1';
+  }
+  return url;
 }
 
 exports.makeHttpsRequest = makeHttpsRequest;

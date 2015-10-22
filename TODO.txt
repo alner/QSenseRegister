@@ -23,3 +23,19 @@ DELETE RULE?
 
 DELETE METHOD
 http://qsdemo/qrs/Selection/cd140cdf-c9f5-4030-adcc-192f3cdfdbfa/SystemRule?xrfkey=vkTMPUB4EvMAlBDj
+
+
+// Login Access Type get
+http://qsdemo/qrs/License/LoginAccessType/table?orderAscending=true&skip=0&sortColumn=name&take=200&xrfkey=VmvQgfPCqNW57X5j
+
+BODY:
+{"entity":"License.LoginAccessType",
+"columns":[
+{"name":"id","columnType":"Property","definition":"id"},
+{"name":"privileges","columnType":"Privileges","definition":"privileges"},
+{"name":"name","columnType":"Property","definition":"name"},
+{"name":"assignedTokens","columnType":"Property","definition":"assignedTokens"},
+{"name":"usedAccessTypes","columnType":"Property","definition":"usedAccessTypes"},
+{"name":"remainingAccessTypes","columnType":"Property","definition":"remainingAccessTypes"}
+]
+}
