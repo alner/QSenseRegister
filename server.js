@@ -425,13 +425,6 @@ function makeRequestTicketStep(userId, req) {
       if(!par.proxyRestUri || !par.targetId)
         return callback(401);
 
-      // } else {
-      //   par = {
-      //     proxyRestUri: proxyRestUri,
-      //     targetId: targetId
-      //   };
-      // }
-
       requestTicket(
         userId,
         config.authmodule.UserDirectory,
