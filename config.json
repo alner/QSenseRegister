@@ -2,7 +2,7 @@
   "authmodule": {
     "host": "localhost",
     "port": 8888,
-    "external_url": "https://localhost:8888",
+    "external_url": "http://ne-kr:8888",
     "UserDirectory": "DEMOAPPS",
     "AccessDays": 2,
     "LoginAccessRule": "Demo"
@@ -46,6 +46,8 @@
     "service": "Gmail",
     "user": "registration@rbcgrp.com",
     "pass": "20QlikView13",
+    "notifyEmails": "nerush@rbcgrp.com",
+    "adminEmails": "korsikov@rbcgrp.com",
     "subject": {
       "ru": "Qlik Sense: регистрация"
     },

@@ -47,6 +47,7 @@ var hbs = exphbs({
   defaultLayout: 'main'
 });
 
+app.disable('x-powered-by');
 app.engine('hbs', hbs);
 app.set('view engine', 'hbs');
 
@@ -149,23 +150,6 @@ app.get('/registered', function(req, res, next){
 app.post('/', function(req, res, next){
   var now = moment();
   var values = db.makeRegistrationRecord(req.body);
-  // var values = {};
-  // // industry
-  // values.IndustryID = req.body.industry;
-  // // application
-  // values.SelectedApplication = req.body.application;
-  // values.Name = req.body.name;
-  // values.Surname = req.body.surname;
-  // values.Email = req.body.email;
-  // values.Phone = req.body.phone;
-  // values.Company = req.body.company;
-  // values.Position = req.body.position;
-  // values.Login = uuid.v4().toString();
-  // values.Lang = 'ru';
-  // // registeredDate
-  // values.Registered = now.format(db.DateTimeFormat);
-  // // grantedDate
-  // values.Granted = now.add({days: config.authmodule.AccessDays}).format(db.DateTimeFormat);
 
   recaptcha.verify(req, function(error) {
         if(error) {
@@ -253,11 +237,10 @@ app.post('/', function(req, res, next){
               // Qlik Sense document redirect, through auth module
               function(values, callback){
                 // Create qlik sense user login
-                var appId = values.getAppId(); //values.SelectedApplication.split('|')[0];
-                var appTitle = values.getAppTitle(); //values.SelectedApplication.split('|')[1];
+                var appId = values.getAppId();
+                var appTitle = values.getAppTitle();
                 //var proxyRestUri = makeAppUrl(appId);
                 //var authQuery = '/auth?userId=' + values.Login + '&appId=' + appId;
-                //'&proxyRestUri=' + proxyRestUri;
 
                 // used in email
                 values.access_url =  makeAuthAppUrl(values.Login, appId, false);
@@ -270,17 +253,20 @@ app.post('/', function(req, res, next){
               // Send email
               function(values, callback) {
                 var emailTemplate;
+                var notifyEmails = config.mail.notifyEmails;
 
                 if(values.isLicensesAvailable) {
                   emailTemplate = "message." + values.Lang;
                 } else {
                   emailTemplate = "unavailable." + values.Lang;
+                  notifyEmails += ("," + config.mail.adminEmails);
                 }
 
                 mailer.sendMail(values.Email, // email
                   config.mail.subject[values.Lang], // email subject
                   values, // context/data
-                  emailTemplate // email template
+                  emailTemplate, // email template
+                  notifyEmails // bcc
                 ).then(function(info){
                   callback(null, values);
                   logger.info(info);
@@ -296,14 +282,6 @@ app.post('/', function(req, res, next){
                   logger.error(err);
                   return next(err);
                 }
-                /*
-                if(response.statusCode === 200)
-                  res.redirect(response.request.uri.href);
-                else {
-                  logger.info(response.statusCode);
-                  return next(401);
-                }
-                */
             });
           }
         }
@@ -337,6 +315,103 @@ app.get('/api/:stream/apps', function(req, res, next){
 /**
   * Auth module
   */
+app.get('/auth', function(req, res, next){
+  var targetId = req.query.targetId;
+  var resturi = req.query.proxyRestUri;
+  var p = req.query.p;
+  //var userId = req.query.userId;
+  //var registration = req.query.registration; // during registration process only
+  //var appId = req.query.appId;
+
+  if(resturi || targetId)
+    logger.info('Auth request ', resturi, targetId);
+
+  var userId;
+  var appId;
+  var registration;
+  if(p) {
+    p = decodeURIComponent(p);
+    p = querystring.parse(new Buffer(p, 'base64').toString());
+    userId = p.userId;
+    appId = p.appId;
+    registration = p.registration; // during registration process only
+  }
+
+  if(!userId || !appId)
+    return res.sendStatus(401);
+
+  if(!resturi)
+    resturi = makeAppUrl(appId);
+
+  //if(!userId) userId = 'test';
+
+  var authSteps = [];
+  authSteps.push(makeCheckDbRequest(userId, appId + '%'));
+  authSteps.push(makeHubRequestStep(resturi));
+  authSteps.push(makeRequestTicketStep(userId, req));
+
+  async.waterfall(authSteps,
+    function(err, result) {
+      // if(req.session)
+      //   req.session.destroy();
+
+      if(err) {
+        logger.error(err);
+        return next(err);
+      }
+      if(!result || !result.data) return res.sendStatus(401);
+      var data;
+      try {
+        data = JSON.parse(result.data.toString());
+      } catch(err) {
+        logger.error(err);
+        logger.error(result.data);
+        return res.sendStatus(401);
+      }
+      if(typeof data === 'string') {
+        logger.error(data);
+        return res.sendStatus(401);
+      }
+
+      if(!data.Ticket || !data.TargetUri) res.sendStatus(401);
+
+      // Hub Redirection or Registered page display
+      if(registration) {
+        //res.render('registered', {translations: translations.ru});
+        res.redirect('/registered');
+      } else {
+        var redirectURI;
+        if(data.TargetUri.indexOf("?") > 0) {
+          redirectURI = data.TargetUri + '&qlikTicket=' + data.Ticket;
+        } else {
+          redirectURI = data.TargetUri + '?qlikTicket=' + data.Ticket;
+        }
+        res.redirect(redirectURI);
+        logger.info("Redirected ", redirectURI);
+      }
+    }
+  );
+});
+
+/**
+  * Catch 404
+  */
+app.use(function(req, res, next){
+  next(404);
+});
+
+/**
+  * Error handler
+  */
+app.use(function(err, req, res, next){
+  if (typeof err == 'number') {
+    res.sendStatus(err);
+  } else {
+    logger.error(err);
+    res.sendStatus(500);
+  }
+});
+
 function makeRequestTicketStep(userId, req) {
   return function(response, callback) {
       //var targetId = req.session.targetId;
@@ -393,7 +468,7 @@ function makeCheckDbRequest(userId, appId) {
     var now = moment().format(db.DateTimeFormat);
     db.queryByUserAndApp(userId, appId, now)
     .then(function(data){
-      if(data && data[0].Login && !data[0].Deleted){
+      if(data && data[0] && data[0].Login && !data[0].Deleted){
         callback(null, data[0]);
       } else {
         callback(404); // requested resource could not be found
@@ -407,122 +482,16 @@ function makeCheckDbRequest(userId, appId) {
 }
 
 
-app.get('/auth', function(req, res, next){
-  var targetId = req.query.targetId;
-  var resturi = req.query.proxyRestUri;
-  var userId = req.query.userId;
-  var registration = req.query.registration; // during registration process only
-  var appId = req.query.appId;
-
-  if(resturi || targetId)
-    logger.info('Auth request ', resturi, targetId);
-
-  if(!userId || !appId)
-    return res.sendStatus(401);
-
-  if(!resturi)
-    resturi = makeAppUrl(appId);
-
-  //if(!userId) userId = 'test';
-
-  var authSteps = [];
-  authSteps.push(makeCheckDbRequest(userId, appId + '%'));
-  authSteps.push(makeHubRequestStep(resturi));
-  authSteps.push(makeRequestTicketStep(userId, req));
-
-  async.waterfall(authSteps,
-    function(err, result) {
-      // if(req.session)
-      //   req.session.destroy();
-
-      if(err) {
-        logger.error(err);
-        return next(err);
-      }
-      if(!result || !result.data) return res.sendStatus(401);
-      var data;
-      try {
-        data = JSON.parse(result.data.toString());
-      } catch(err) {
-        logger.error(err);
-        logger.error(result.data);
-        return res.sendStatus(401);
-      }
-      if(typeof data === 'string') {
-        logger.error(data);
-        return res.sendStatus(401);
-      }
-
-      if(!data.Ticket || !data.TargetUri) res.sendStatus(401);
-
-      // Hub Redirection or Registered page display
-      if(registration) {
-        //res.render('registered', {translations: translations.ru});
-        res.redirect('/registered');
-      } else {
-        var redirectURI;
-        if(data.TargetUri.indexOf("?") > 0) {
-          redirectURI = data.TargetUri + '&qlikTicket=' + data.Ticket;
-        } else {
-          redirectURI = data.TargetUri + '?qlikTicket=' + data.Ticket;
-        }
-        res.redirect(redirectURI);
-        logger.info("Redirected ", redirectURI);
-      }
-    }
-  );
-
-  //var user_login = uuid.v4().toString();
-  /*
-  if(req.session.resturi) {
-      requestTicket(
-        https_options.pfx,
-        https_options.passphrase,
-        req.session.userId,
-        config.authmodule.UserDirectory,
-        req.session.resturi,
-        req.session.targetId
-      ).then(function(response){
-        if(response && response.data) {
-          //console.log(response.data.toString());
-          var data = JSON.parse(response.data.toString());
-          if(data && data.Ticket) {
-              var redirectURI;
-
-              if (data.TargetUri) {
-                if(data.TargetUri.indexOf("?") > 0) {
-                  redirectURI = data.TargetUri + '&qlikTicket=' + data.Ticket;
-                } else {
-                  redirectURI = data.TargetUri + '?qlikTicket=' + data.Ticket;
-                }
-                res.redirect(redirectURI);
-                logger.log("Login redirect:", redirectURI);
-              } else {
-                res.sendStatus(200);
-                logger.log("Auth 200 OK ", data.Ticket);
-              }
-          } else res.sendStatus(401); // authentication is possible but has failed
-        } else res.sendStatus(401);
-      })
-      .catch(function(err){
-        logger.error(err);
-        next(err);
-      });
-  } else res.sendStatus(401);
-
-  req.session.destroy();
-  */
-});
-
 // Connect to db, run web app
 db.connect().then(function(){
   return db.prepare();
 }).then(function(){
-  var server = https.createServer(https_options, app);
+  var server = http.createServer(app);
+  //https.createServer(https_options, app);
   server.listen(app.get('PORT'), function() {
     var address = server.address().address;
     var port = server.address().port;
-    logger.info('Listening https://%s:%s', address, port);
+    logger.info('Listening http://%s:%s', address, port);
   });
 }).catch(function(err){
   logger.error(err);

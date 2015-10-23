@@ -59,10 +59,12 @@ function makeAppUrl(appId) {
 
 function makeAuthAppUrl(login, appid, isRegistration) {
   // Auth module url
-  var url = config.authmodule.external_url + '/auth?userId=' + login + '&appId=' + appid;
+  var q = 'userId=' + login + '&appId=' + appid;
   if(isRegistration) {
-    url += '&registration=1';
+    q += '&registration=1';
   }
+  q = new Buffer(q).toString('base64');
+  var url = config.authmodule.external_url + '/auth?p=' + q; // userId=' + login + '&appId=' + appid;
   return url;
 }
 

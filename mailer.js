@@ -25,17 +25,20 @@ var transporter = nodemailer.createTransport({
 
 transporter.use('compile', hbs(hbsOptions));
 
-exports.sendMail = function(to, subject, context, mailTemplate) {
+exports.sendMail = function(to, subject, context, mailTemplate, bcc) {
   return new Promise(function(resolve, reject) {
-      transporter.sendMail({
+      var options = {
         from: config.mail.user, // sender address
         to: to || context.email, // list of receivers
         subject: subject || 'Qlik Sense registration ✔', // Subject line
         template: mailTemplate,
         context: context
-        //text: 'Hello world ✔', // plaintext body
-        //html: '<b>Hello world ✔</b>' // html body
-      },
+      };
+
+      if(bcc)
+        options.bcc = bcc;
+
+      transporter.sendMail(options,
       function(error, info){
         if(error) return reject(error);
         resolve(info);
