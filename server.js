@@ -48,6 +48,7 @@ var hbs = exphbs({
 });
 
 app.disable('x-powered-by');
+app.enable('trust proxy');
 app.engine('hbs', hbs);
 app.set('view engine', 'hbs');
 
