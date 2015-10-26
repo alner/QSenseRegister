@@ -6,7 +6,7 @@
             <form class="form-horizontal" method="post">
               <div class="form-group">
                 <div class="col-md-3 col-sm-3">
-                  <img id="img" src="qsdemopublic/bd_remixability.png" class="hidden-xs">
+                  <img id="img" src="{{publicpath}}/bd_remixability.png" class="hidden-xs">
                 </div>
                 <div class="col-md-9 col-sm-9">
                   <h5 class="gc">{{{translations.title}}}</h5>
@@ -120,7 +120,7 @@ $(document).ready(function(){
   $('#industry').on('change', function(){
     var industry = $('#industry').val();
     if(industry) {
-      $.get('/qsdemoapi/' + industry + '/apps', function(data) {
+      $.get('{{mountpath}}/api/' + industry + '/apps', function(data) {
         var apps$ = $('#application');
         apps$.empty();
         var apps = [];

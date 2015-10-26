@@ -63,8 +63,8 @@ function makeAuthAppUrl(login, appid, isRegistration) {
   if(isRegistration) {
     q += '&registration=1';
   }
-  q = new Buffer(q).toString('base64');
-  var url = config.authmodule.external_url + '/auth?p=' + q; // userId=' + login + '&appId=' + appid;
+  q = encodeURIComponent(new Buffer(q).toString('base64'));
+  var url = config.authmodule.external_url + config.authmodule.external_mount_path + '/auth?p=' + q; // userId=' + login + '&appId=' + appid;
   return url;
 }
 

@@ -40,6 +40,8 @@ var SECRET_KEY = config.recaptcha.SECRET_KEY;
 recaptcha.init(SITE_KEY, SECRET_KEY);
 
 var app = express();
+var router = express.Router();
+
 app.set('PORT', process.env.PORT || config.authmodule.port);
 
 var hbs = exphbs({
@@ -53,7 +55,9 @@ app.engine('hbs', hbs);
 app.set('view engine', 'hbs');
 
 // static middleware
-app.use('/qsdemopublic', express.static('public'));
+var mountpath = config.authmodule.external_mount_path;
+var publicmountpath = mountpath + 'public';
+app.use(publicmountpath, express.static('public'));
 
 // parse application/x-www-form-urlencoded
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -134,21 +138,23 @@ function renderIndex(errors, values, req, res, next){
         errors: errors,
         values: values,
         recaptcha:req.recaptcha,
-        SITE_KEY: SITE_KEY
+        SITE_KEY: SITE_KEY,
+        publicpath: publicmountpath,
+        mountpath: mountpath
       }
     );
   });
 }
 
-app.get('/', recaptcha.middleware.render, function(req, res, next){
+router.get('/', recaptcha.middleware.render, function(req, res, next){
   renderIndex(null, {}, req, res, next);
 });
 
-app.get('/registered', function(req, res, next){
-  res.render('registered', {translations: translations.ru});
-})
+router.get('/registered', function(req, res, next){
+  res.render('registered', {translations: translations.ru, mountpath: mountpath, publicpath: publicmountpath});
+});
 
-app.post('/', function(req, res, next){
+router.post('/', function(req, res, next){
   var now = moment();
   var values = db.makeRegistrationRecord(req.body);
 
@@ -293,7 +299,7 @@ app.post('/', function(req, res, next){
 /**
   * Get app list for appropriate stream
   */
-app.get('/qsdemoapi/:stream/apps', function(req, res, next){
+router.get('/api/:stream/apps', function(req, res, next){
   var stream = req.params.stream;
   repositoryGetApps()
   .then(function(response){
@@ -316,7 +322,7 @@ app.get('/qsdemoapi/:stream/apps', function(req, res, next){
 /**
   * Auth module
   */
-app.get('/auth', function(req, res, next){
+router.get('/auth', function(req, res, next){
   var targetId = req.query.targetId;
   var resturi = req.query.proxyRestUri;
   var p = req.query.p;
@@ -379,7 +385,7 @@ app.get('/auth', function(req, res, next){
       // Hub Redirection or Registered page display
       if(registration) {
         //res.render('registered', {translations: translations.ru});
-        res.redirect('/registered');
+        res.redirect(mountpath + '/registered');
       } else {
         var redirectURI;
         if(data.TargetUri.indexOf("?") > 0) {
@@ -393,6 +399,9 @@ app.get('/auth', function(req, res, next){
     }
   );
 });
+
+// mount to path
+app.use(mountpath, router);
 
 /**
   * Catch 404

@@ -3,6 +3,7 @@
     "host": "localhost",
     "port": 8888,
     "external_url": "http://ne-kr:8888",
+    "external_mount_path": "/qsdemo",
     "UserDirectory": "DEMOAPPS",
     "AccessDays": 2,
     "LoginAccessRule": "Demo"
