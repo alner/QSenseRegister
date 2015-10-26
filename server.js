@@ -53,7 +53,7 @@ app.engine('hbs', hbs);
 app.set('view engine', 'hbs');
 
 // static middleware
-app.use(express.static('public'));
+app.use('/qsdemopublic', express.static('public'));
 
 // parse application/x-www-form-urlencoded
 app.use(bodyParser.urlencoded({ extended: true }));
