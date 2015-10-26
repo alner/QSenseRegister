@@ -120,7 +120,7 @@ $(document).ready(function(){
   $('#industry').on('change', function(){
     var industry = $('#industry').val();
     if(industry) {
-      $.get('/api/' + industry + '/apps', function(data) {
+      $.get('/qsdemoapi/' + industry + '/apps', function(data) {
         var apps$ = $('#application');
         apps$.empty();
         var apps = [];

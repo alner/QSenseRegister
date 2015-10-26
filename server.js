@@ -293,7 +293,7 @@ app.post('/', function(req, res, next){
 /**
   * Get app list for appropriate stream
   */
-app.get('/api/:stream/apps', function(req, res, next){
+app.get('/qsdemoapi/:stream/apps', function(req, res, next){
   var stream = req.params.stream;
   repositoryGetApps()
   .then(function(response){
