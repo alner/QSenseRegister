@@ -11,11 +11,14 @@ function getLogger(module) {
           timestamp: true,
           colorize: true,
           level: 'debug'//(ENV == 'development') ? 'debug' : 'error'
-        }),
+        })
+/*
+        ,
         new (winston.transports.File)({
           filename: 'errors.log',
           level: 'error'
         })
+*/
       ]
   });
 }
