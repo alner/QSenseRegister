@@ -257,7 +257,7 @@ router.post('/', function(req, res, next){
                 callback(null, values);
               },
 
-              // Send email
+              // Send emails
               function(values, callback) {
                 var emailTemplate;
                 var notifyEmails = config.mail.notifyEmails;
@@ -272,8 +272,20 @@ router.post('/', function(req, res, next){
                 mailer.sendMail(values.Email, // email
                   config.mail.subject[values.Lang], // email subject
                   values, // context/data
-                  emailTemplate, // email template
-                  notifyEmails // bcc
+                  emailTemplate // email template
+                ).then(function(info){
+                  callback(null, values);
+                  logger.info(info);
+                }).catch(function(err){
+                  callback(err);
+                  logger.error(err);
+                });
+
+                // Notification email
+                mailer.sendMail(notifyEmails, // email
+                  config.mail.subject[values.Lang], // email subject
+                  values, // context/data
+                  "notifyMessage.ru" // email template
                 ).then(function(info){
                   callback(null, values);
                   logger.info(info);
