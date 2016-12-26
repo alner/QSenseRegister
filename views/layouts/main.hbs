@@ -3,40 +3,24 @@
 <head>
   <meta charset="utf-8" />
   <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-  <title>Sense</title>
-  <link href="{{publicpath}}/bootstrap/css/bootstrap.min.css" rel="stylesheet">
-  <link href="{{publicpath}}/styles.css" rel="stylesheet">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, maximum-scale=1.0">
+  <title>Qlik Sense</title>
+  <link rel="stylesheet" href="{{publicpath}}/assets/css/style.css">
+  <link rel="stylesheet" href="{{publicpath}}/assets/css/vendor.min.css">
+
   <script src='https://www.google.com/recaptcha/api.js'></script>
-  <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+  <!--script src="https://ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"></script-->
+  <script src="{{publicpath}}/assets/js/jquery.min.js"></script>
+  <script src="{{publicpath}}/assets/js/vendor.min.js"></script>
+  <script src="{{publicpath}}/assets/js/main.min.js"></script>  
 </head>
 <body>
-  <div class="navbar navbar-default navbar-static-top topback">
-     <div class="container" >
-      <div class="row">
-        <div class="col-xs-12 col-sm-10 col-md-8 col-md-offset-2 col-sm-offset-1">
-          <div class="navbar-header hidden-xs">
-            <a class="navbar-brand" href="http://www.rbcgrp.com">
-              <img src="{{publicpath}}/logo.png" id="logo" alt="RBC GROUP Logo">
-            </a>
-              <p class="navbar-text"><big class="rbc visible-lg-block">{{{translations.slogan}}}</big></p>
-          </div>
-          <div class="navbar-text visible-xs">
-            <span class="rbc"><big><strong>RBC GROUP</strong></big></span>
-          </div>
-          <div class="visible-lg-block visible-md-block visible-sm-block visible-xs-block">
-            <p class="navbar-text navbar-right">
-              <span class="glyphicon glyphicon-phone gc" aria-hidden="true"></span>
-              <span class="rbc"><big>+38 (044) 364 17 42</big></span>
-              <span class="glyphicon glyphicon-envelope gc" aria-hidden="true"></span>
-              <a class="rbc" href="mailto:marketing@rbcgrp.com"><span class="rbc"><big>marketing@rbcgrp.com</big></span></a>
-            </p>
-          </div>
-        </div>
-      </div>
-     </div>
+  <div class="new-header clearfix">
+      <img src="{{publicpath}}/assets/img/rbc-logo.png" alt="" class="rbc-logo">
+      <div class="capability-form_title">{{{translations.title}}}</div>      
+      <img src="{{publicpath}}/assets/img/qlik-logo.png" alt="" class="qlik-logo">
   </div>
   {{{body}}}
-  <script src="{{publicpath}}/bootstrap/js/bootstrap.min.js"></script>
+  <!--div class="new-footer"></div-->
 </body>
 </html>

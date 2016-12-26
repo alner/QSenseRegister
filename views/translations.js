@@ -1,7 +1,9 @@
 exports.ru = {
   select: 'Выбрать...',
   slogan: 'Бизнес-аналитика для всех',
-  title: 'Выберите и оцените возможности наших решений Qlik&nbsp;Sense',
+  title: 'Выберите и оцените возможности наших решений',
+  qliksense: 'Qlik&nbsp;Sense',
+  qlikview: 'QlikView',
   industry: 'Область интереса',
   application: 'Демо-приложение',
   name: 'Имя',

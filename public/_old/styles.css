@@ -1,0 +1,77 @@
+body {
+  background-color: #d8d8d8;
+}
+
+.panel {
+  box-shadow: 0 0 7px darkgrey;
+  min-width: 305px;
+  background: white;
+}
+
+.jumbotron {
+  background: white;
+}
+
+.btn-success {
+  background: #56A00E;
+}
+
+.btn-success:hover {
+  background: #56B00E;
+}
+
+#logo {
+  height: 100%;
+  margin-top: 5px;
+  margin-right: 5px;
+}
+#img {
+  height: 75px;
+}
+
+.rbc {
+  color: #21215a;
+  padding-right: 7px;
+}
+
+.gc {
+  color:#56A00E;
+  font-weight: bold;
+}
+
+.topback {
+  /*background-color: #f2f2f2;*/
+  background: white url(green-swirls-strip.jpg);
+  background-position: top;
+  background-repeat: repeat-x;
+}
+
+#pf {
+  background: url(green-tech.jpg);
+  height: 45px;
+}
+
+.navbar-brand {
+  padding: 10px 15px;
+}
+
+textarea:focus,
+textarea.form-control:focus,
+input.form-control:focus,
+input[type=text]:focus,
+input[type=password]:focus,
+input[type=email]:focus,
+input[type=number]:focus,
+[type=text].form-control:focus,
+[type=password].form-control:focus,
+[type=email].form-control:focus,
+[type=tel].form-control:focus,
+[contenteditable].form-control:focus {
+    -webkit-box-shadow: inset 0 -2px 0 rgb(98, 196, 98);
+    box-shadow: inset 0 -2px 0 rgb(98, 196, 98);
+}
+
+select:focus, select.form-control:focus {
+  -webkit-box-shadow: inset 0 -2px 0 rgb(98, 196, 98);
+  box-shadow: inset 0 -2px 0 rgb(98, 196, 98);
+}

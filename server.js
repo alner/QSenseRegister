@@ -56,7 +56,7 @@ app.set('view engine', 'hbs');
 
 // static middleware
 var mountpath = config.authmodule.external_mount_path;
-var publicmountpath = mountpath + 'public';
+var publicmountpath = mountpath + '/public';
 app.use(publicmountpath, express.static('public'));
 
 // parse application/x-www-form-urlencoded
