@@ -24,7 +24,8 @@
   "repository": {
     "host": "qsdemo.rbcgrp.com",
     "port": 4242,
-    "X-Qlik-User": "UserDirectory=QSDEMO; UserId=qsdemoapps"
+    "X-Qlik-User": "UserDirectory=QSDEMO; UserId=qsdemoapps",
+    "AppIndustryCustomProperty": "ROI"
   },
   "certificates": {
     "passphrase": "1234567890",
@@ -39,7 +40,7 @@
   },
   "db": {
     "user": "senseregister",
-    "password": "123456",
+    "password": "1234567890",
     "server": "localhost\\SQLEXPRESS",
     "database": "SenserRegister"
   },

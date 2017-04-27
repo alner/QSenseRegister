@@ -78,6 +78,8 @@ app.use(session({
   * Render index page
   */
 function renderIndex(errors, values, req, res, next){
+  var AppIndustryCustomProperty = config.repository.AppIndustryCustomProperty;
+
   async.waterfall([
     function(callback){
       // get apps list
@@ -103,12 +105,23 @@ function renderIndex(errors, values, req, res, next){
       var streams = {};
       if(apps && apps.length > 0) {
         apps.map(function(appinfo) {
-          streams[appinfo.stream.name] = {
-            value: appinfo.stream.name,
-            toString: function(){
-              return this.value;
-            }
-          };
+          // 26/04/2017 Changed to use CutomProperty instead of stream
+          appinfo.customProperties.forEach(function(customProperty){
+              if(customProperty.definition.name === AppIndustryCustomProperty) {
+                  streams[customProperty.value] = {
+                      value: customProperty.value,
+                      toString: function(){
+                        return this.value;
+                      }
+                  };
+              }
+              // streams[appinfo.stream.name] = {
+              //   value: appinfo.stream.name,
+              //   toString: function(){
+              //     return this.value;
+              //   }
+              // };
+          });
         });
       }
       callback(null, streams, apps); // Object.keys(streams)
@@ -125,7 +138,8 @@ function renderIndex(errors, values, req, res, next){
     if(values && values.SelectedApplication) {
       apps.map(function(app) {
         var appIdName = app.id + '|' + app.name;
-        if(appIdName == values.SelectedApplication)
+        if((appIdName == values.SelectedApplication) 
+        || (values.IndustryID && streams[values.IndustryID].selected && app.name == values.SelectedApplication))
           app.selected = true;
       });
     }
@@ -147,7 +161,14 @@ function renderIndex(errors, values, req, res, next){
 }
 
 router.get('/', recaptcha.middleware.render, function(req, res, next){
-  renderIndex(null, {}, req, res, next);
+  var values = {};
+  if(req.query.industry)
+    values.IndustryID = req.query.industry;
+
+  if(req.query.app)
+    values.SelectedApplication = req.query.app;
+
+  renderIndex(null, values, req, res, next);
 });
 
 router.get('/registered', function(req, res, next){
@@ -312,6 +333,7 @@ router.post('/', function(req, res, next){
   * Get app list for appropriate stream
   */
 router.get('/api/:stream/apps', function(req, res, next){
+  var AppIndustryCustomProperty = config.repository.AppIndustryCustomProperty;
   var stream = req.params.stream;
   repositoryGetApps()
   .then(function(response){
@@ -319,7 +341,12 @@ router.get('/api/:stream/apps', function(req, res, next){
     if(response.data) {
       apps = JSON.parse(response.data);
       apps = apps.filter(function(appinfo){
-        return appinfo.stream.name === stream;
+        return appinfo.customProperties.some(function(customProperty){
+          // 26/04/2017 Changed to use CutomProperty instead of stream
+          //return appinfo.stream.name === stream; 
+          return customProperty.definition.name === AppIndustryCustomProperty 
+            && customProperty.value === stream; 
+        });
       });
     }
     res.json(apps);

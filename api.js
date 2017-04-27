@@ -62,7 +62,7 @@ exports.repositoryGetApps = function repositoryGetApps(){
   var options = {
     host: config.repository.host,
     port: config.repository.port,
-    path: '/qrs/app?xrfkey=' + xrfkey,
+    path: '/qrs/app/full?xrfkey=' + xrfkey,
     method: 'GET',
     headers: {
       'X-Qlik-Xrfkey': xrfkey,
